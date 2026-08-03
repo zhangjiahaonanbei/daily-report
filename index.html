@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>成都工务段 - 铁路沿线安全环境隐患排查整治大会战工作日报生成器</title>
+<script src="docx.umd.js"></script>
+<style>
+:root {
+  --primary: #1a5276;
+  --primary-light: #2980b9;
+  --bg: #f0f3f6;
+  --card-bg: #ffffff;
+  --text: #2c3e50;
+  --text-light: #5d6d7e;
+  --border: #d5dbdb;
+  --accent: #c0392b;
+  --success: #27ae60;
+  --warning: #f39c12;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --radius: 10px;
+  --input-bg: #f8f9fa;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+/* Prevent iOS input zoom on focus — keep font >= 16px on mobile */
+@media (max-width: 600px) {
+  input, textarea, select, button { font-size: 16px !important; }
+  .btn-sm, .btn-sm input { font-size: 13px !important; }
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+}
+/* Header */
+.header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: #fff;
+  padding: 24px 20px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.header .title-input {
+  font-size: clamp(18px, 4vw, 24px);
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  width: 100%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: inherit;
+  outline: none;
+  transition: background 0.2s;
+}
+.header .title-input:focus {
+  background: rgba(255,255,255,0.25);
+}
+.header .title-input::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+.header .subtitle {
+  font-size: 13px;
+  opacity: 0.85;
+  letter-spacing: 0.5px;
+}
+/* Card */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-light);
+}
+.card-header .section-num {
+  background: var(--primary);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.card-header .section-title-input {
+  font-size: 16px;
+  color: var(--primary);
+  font-weight: 700;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  outline: none;
+  flex: 1;
+  transition: border-color 0.2s, background 0.2s;
+}
+.card-header .section-title-input:focus {
+  border-color: var(--primary-light);
+  background: #f0f4ff;
+}
+/* Date Picker */
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.date-row label {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-light);
+  font-size: 14px;
+}
+.date-row input[type="date"] {
+  flex: 1;
+  min-width: 160px;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  background: var(--input-bg);
+  transition: border-color 0.2s;
+}
+.date-row input[type="date"]:focus {
+  border-color: var(--primary-light);
+  outline: none;
+}
+/* Form groups */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+.form-group label .unit {
+  font-weight: 400;
+  color: #999;
+  font-size: 11px;
+}
+.form-group input, .form-group textarea {
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--input-bg);
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.form-group input:focus, .form-group textarea:focus {
+  border-color: var(--primary-light);
+  outline: none;
+}
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+.form-group input[type="number"] {
+  -moz-appearance: textfield;
+}
+.form-group input[type="number"]::-webkit-outer-spin-button,
+.form-group input[type="number"]::-webkit-inner-spin-button {
+  opacity: 1;
+}
+/* Coordination items */
+.coord-item {
+  background: #fafbfc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+  position: relative;
+}
+.coord-item .item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.coord-item .item-num {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 14px;
+}
+.coord-item .coord-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.coord-item textarea {
+  min-height: 100px;
+}
+/* Image upload */
+.image-upload-area {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--input-bg);
+}
+.image-upload-area:hover {
+  border-color: var(--primary-light);
+  background: #eef5fb;
+}
+.image-upload-area .upload-icon {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+.image-upload-area .upload-text {
+  font-size: 13px;
+  color: var(--text-light);
+}
+.image-preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.image-preview-item {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.image-preview-item .remove-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+/* Buttons */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--primary-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26,82,118,0.3);
+}
+.btn-outline {
+  background: #fff;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+.btn-outline:hover {
+  background: #eef5fb;
+}
+.btn-danger {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.btn-danger:hover {
+  background: #fdedec;
+}
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.btn-block {
+  width: 100%;
+  justify-content: center;
+  padding: 14px;
+  font-size: 16px;
+}
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+/* Generate section */
+.generate-section {
+  text-align: center;
+  padding: 10px 0;
+}
+.generate-section .btn-primary {
+  font-size: 17px;
+  padding: 16px 48px;
+  letter-spacing: 1px;
+}
+.status-msg {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--text-light);
+  min-height: 20px;
+}
+.status-msg.success { color: var(--success); font-weight: 600; }
+.status-msg.error { color: var(--accent); }
+/* Preview modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.modal h3 {
+  margin-bottom: 16px;
+  color: var(--primary);
+}
+/* ====== Responsive ====== */
+
+/* Tablet & small desktop */
+@media (max-width: 600px) {
+  .container { padding: 8px; }
+  .card { padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+  .card-header { flex-wrap: wrap; gap: 6px; }
+  .card-header .section-num { width: 26px; height: 26px; font-size: 12px; }
+  .card-header .section-title-input { font-size: 14px; }
+  .form-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .form-group label { font-size: 11px; }
+  .form-group input, .form-group textarea { font-size: 16px; padding: 10px; }
+  .header { padding: 14px 12px; border-radius: 8px; }
+  .header .title-input { font-size: 15px; }
+  .header .subtitle { font-size: 11px; }
+  .generate-section .btn-primary { width: 100%; max-width: 400px; padding: 14px 28px; font-size: 15px; }
+  .toggle-btn { padding: 8px 12px; font-size: 13px; min-height: 40px; }
+  .btn { font-size: 13px; padding: 10px 14px; min-height: 40px; }
+  .coord-item { padding: 10px; }
+  .coord-item .item-header { flex-wrap: wrap; gap: 8px; }
+  .image-preview-item { width: 70px; height: 70px; }
+  .btn-row { flex-direction: column; }
+  .btn-row .btn { width: 100%; justify-content: center; }
+}
+
+/* iPhone 14/15 Pro Max, Plus (~430px) */
+@media (max-width: 430px) {
+  .header { padding: 12px 10px; }
+  .header .title-input { font-size: 14px; padding: 10px 8px; }
+  .header .subtitle { font-size: 10px; }
+  .card-header { flex-wrap: wrap; gap: 4px; }
+  .card-header .section-title-input { font-size: 13px; min-width: 0; flex: 1 1 100%; }
+  .toggle-switch { margin-left: 0; }
+  .generate-section .btn-primary { font-size: 16px; padding: 16px 20px; min-height: 48px; }
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 36px; padding: 6px 10px; font-size: 12px; }
+  .date-row { flex-direction: column; align-items: stretch; gap: 8px; }
+  .date-row label { font-size: 13px; }
+  .image-upload-area { padding: 20px 12px; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .image-upload-area .upload-icon { font-size: 32px; }
+  .image-upload-area .upload-text { font-size: 14px; }
+  .modal { max-width: 100%; max-height: 100vh; border-radius: 12px 12px 0 0; margin-top: auto; }
+  .modal-overlay { align-items: flex-end; }
+  .coord-item .item-header { flex-direction: column; align-items: stretch; }
+  .coord-item .item-header .btn { width: 100%; justify-content: center; }
+}
+
+/* iPhone SE, older small phones (~375px) */
+@media (max-width: 380px) {
+  .container { padding: 6px; }
+  .card { padding: 10px; margin-bottom: 8px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .card-header { flex-direction: column; align-items: stretch; }
+  .card-header .section-num { align-self: flex-start; }
+  .toggle-switch { width: 100%; }
+  .toggle-btn { flex: 1; text-align: center; }
+  .header .title-input { font-size: 13px; }
+  .generate-section .btn-primary { padding: 16px 12px; font-size: 15px; }
+}
+
+/* iOS safe-area & scrolling */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .container { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .modal-overlay { padding-bottom: env(safe-area-inset-bottom); }
+}
+body {
+  -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: transparent;
+}
+/* help text */
+.help-text {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+/* Loading spinner */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+/* Toggle switch buttons */
+.toggle-switch {
+  display: flex;
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.toggle-btn {
+  padding: 6px 14px;
+  background: #fff;
+  color: var(--primary);
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.toggle-btn.active {
+  background: var(--primary);
+  color: #fff;
+}
+.toggle-btn:not(.active):hover {
+  background: #eef5fb;
+}
+@media (max-width: 600px) {
+  .toggle-btn { padding: 6px 10px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <input type="text" id="mainTitle" class="title-input" value="成都工务段铁路沿线安全环境隐患排查整治大会战工作日报">
+    <div class="subtitle">成都工务段 · 日报生成系统</div>
+  </div>
+
+  <!-- Date -->
+  <div class="card">
+    <div class="date-row">
+      <label for="reportDate">日报日期：</label>
+      <input type="date" id="reportDate">
+    </div>
+  </div>
+
+  <!-- Section 1: 当日工作开展情况 -->
+  <div class="card" id="section1">
+    <div class="card-header">
+      <div class="section-num">1</div>
+      <input type="text" id="section1Title" class="section-title-input" value="一、当日工作开展情况">
+      <div class="toggle-switch" style="margin-left:auto">
+        <button class="toggle-btn active" id="s1ToggleData" onclick="switchS1Mode('data')">填写数据</button>
+        <button class="toggle-btn" id="s1ToggleFree" onclick="switchS1Mode('free')">直接粘贴总结</button>
+      </div>
+    </div>
+    <!-- 填写数据模式 -->
+    <div id="s1DataMode">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>出动排查人员 <span class="unit">(人次)</span></label>
+        <input type="number" id="s1_personnel" placeholder="如: 12" min="0">
+      </div>
+      <div class="form-group">
+        <label>出动包保组成员 <span class="unit">(人次)</span></label>
+        <input type="number" id="s1_baobao" placeholder="如: 0" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>排查线路里程 <span class="unit">(公里)</span></label>
+        <input type="text" id="s1_mileage" placeholder="如: 38.068">
+      </div>
+      <div class="form-group">
+        <label>累计排查线路里程 <span class="unit">(公里)</span></label>
+        <input type="text" id="s1_total_mileage" placeholder="如: 747.912">
+      </div>
+      <div class="form-group">
+        <label>完成率 <span class="unit">(%)</span></label>
+        <input type="text" id="s1_completion" placeholder="如: 64">
+      </div>
+      <div class="form-group">
+        <label>对接协调区市县 <span class="unit">(个)</span></label>
+        <input type="number" id="s1_district" placeholder="如: 1" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>对接协调乡镇街道 <span class="unit">(个)</span></label>
+        <input type="number" id="s1_town" placeholder="如: 1" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>对接协调村社 <span class="unit">(个)</span></label>
+        <input type="number" id="s1_village" placeholder="如: 4" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>当日排查隐患 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_daily_hazards" placeholder="如: 32" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>其中: 既有隐患 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_existing" placeholder="如: 22" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>其中: 新增隐患 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_new" placeholder="如: 10" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>其中: 国铁库内隐患 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_guotie" placeholder="如: 0" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>系统录入 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_sys_input" placeholder="如: 11" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>销号 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_cancel" placeholder="如: 0" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>累计排查隐患 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_total_hazards" placeholder="如: 303" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>累计系统录入 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_total_input" placeholder="如: 110" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>累计销号 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_total_cancel" placeholder="如: 0" min="0" value="0">
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="form-group">
+        <label>录制音视频车间（选填，格式：今日录制音视频车间X个，为XXX车间）</label>
+        <textarea id="s1_video_note" rows="2" placeholder="例如：今日录制音视频车间1个，为彭山线桥车间。&#10;不填则不出现在日报中。"></textarea>
+      </div>
+      <div class="form-group" style="margin-top:8px">
+        <label>其他备注（选填，将追加在段落末尾）</label>
+        <input type="text" id="s1_extra_note" placeholder="如有额外说明请填写...">
+      </div>
+    </div>
+    </div>
+    <!-- 直接粘贴总结模式 -->
+    <div id="s1FreeMode" style="display:none">
+      <div class="form-group">
+        <textarea id="s1_free_text" rows="8" placeholder="直接在此粘贴当日工作开展情况的完整总结文字...&#10;&#10;例如：成都工务段7月26日，出动排查人员12人次，出动包保组成员0人次，排查线路里程38.068公里..."></textarea>
+        <span class="help-text">粘贴后生成Word时会自动套用正文格式（方正仿宋_GB2312，16pt，首行缩进2字符，两端对齐）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: 协调对接工作开展情况 -->
+  <div class="card" id="section2">
+    <div class="card-header">
+      <div class="section-num">2</div>
+      <input type="text" id="section2Title" class="section-title-input" value="二、协调对接工作开展情况">
+      <button class="btn btn-outline btn-sm" onclick="addCoordItem()" style="margin-left:auto">+ 添加条目</button>
+    </div>
+    <div id="coordItems"></div>
+    <div id="coordEmpty" style="text-align:center;padding:20px;color:#999;font-size:14px">
+      暂无条目，点击右上角"+ 添加条目"开始填写
+    </div>
+  </div>
+
+  <!-- Section 3: 大会战排查整治数据统计 -->
+  <div class="card" id="section3">
+    <div class="card-header">
+      <div class="section-num">3</div>
+      <input type="text" id="section3Title" class="section-title-input" value="三、大会战排查整治数据统计">
+    </div>
+    <p class="help-text" style="margin-bottom:10px">
+      直接上传统计截图（支持多张）。
+    </p>
+    <!-- Image upload for statistics -->
+    <div class="image-upload-area" id="s3ImageArea" onclick="document.getElementById('s3ImageInput').click()">
+      <div class="upload-icon">📊</div>
+      <div class="upload-text">点击上传数据统计截图（支持多张）</div>
+      <input type="file" id="s3ImageInput" accept="image/*" multiple style="display:none" onchange="handleS3ImageUpload(this)">
+    </div>
+    <div class="image-preview-list" id="s3ImagePreview"></div>
+  </div>
+
+  <!-- Section 4: 需段协调解决问题 -->
+  <div class="card" id="section4">
+    <div class="card-header">
+      <div class="section-num">4</div>
+      <input type="text" id="section4Title" class="section-title-input" value="四、需段协调解决问题">
+    </div>
+    <div class="form-group">
+      <textarea id="s4_content" rows="4" placeholder="填写需段协调解决的问题，如无则填写"无""></textarea>
+    </div>
+  </div>
+
+  <!-- Generate -->
+  <div class="card generate-section">
+    <button class="btn btn-primary btn-block" onclick="generateReport()" id="generateBtn">
+      生成并下载 Word 日报
+    </button>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal">
+    <h3>生成预览</h3>
+    <div id="previewContent" style="font-size:14px; line-height:2; white-space:pre-wrap;"></div>
+    <div style="margin-top:16px; text-align:right">
+      <button class="btn btn-outline" onclick="closePreview()">关闭</button>
+      <button class="btn btn-primary" onclick="downloadDocx()">确认下载 Word</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ STATE ============
+let coordItems = [];
+let coordItemCounter = 0;
+let s3Images = [];
+let s1Mode = 'data'; // 'data' or 'free'
+
+// ============ SECTION 1 TOGGLE ============
+function switchS1Mode(mode) {
+  s1Mode = mode;
+  document.getElementById('s1DataMode').style.display = mode === 'data' ? 'block' : 'none';
+  document.getElementById('s1FreeMode').style.display = mode === 'free' ? 'block' : 'none';
+  document.getElementById('s1ToggleData').classList.toggle('active', mode === 'data');
+  document.getElementById('s1ToggleFree').classList.toggle('active', mode === 'free');
+}
+let pendingDocxBlob = null;
+let pendingFilename = '';
+
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('reportDate').value = today;
+  addCoordItem(); // default 1 item
+});
+
+// ============ COORD ITEMS ============
+function addCoordItem() {
+  coordItemCounter++;
+  const idx = coordItemCounter;
+  const item = {
+    id: idx,
+    content: '',
+    images: []
+  };
+  coordItems.push(item);
+  renderCoordItems();
+}
+
+function removeCoordItem(id) {
+  coordItems = coordItems.filter(item => item.id !== id);
+  renderCoordItems();
+}
+
+function handleCoordImageUpload(input, itemId) {
+  const files = Array.from(input.files);
+  const item = coordItems.find(i => i.id === itemId);
+  if (!item) return;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      item.images.push(e.target.result);
+      renderCoordItems();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function removeCoordImage(itemId, imgIdx) {
+  const item = coordItems.find(i => i.id === itemId);
+  if (!item) return;
+  item.images.splice(imgIdx, 1);
+  renderCoordItems();
+}
+
+function renderCoordItems() {
+  const container = document.getElementById('coordItems');
+  const emptyEl = document.getElementById('coordEmpty');
+
+  if (coordItems.length === 0) {
+    container.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  container.innerHTML = coordItems.map((item, idx) => `
+    <div class="coord-item">
+      <div class="item-header">
+        <span class="item-num">协调事项 #${idx + 1}</span>
+        <button class="btn btn-danger btn-sm" onclick="removeCoordItem(${item.id})">删除</button>
+      </div>
+      <div class="coord-content">
+        <div class="form-group">
+          <label>工作内容描述</label>
+          <textarea rows="4" placeholder="例：2026年7月26日，彭山线桥车间副主任童柯伟带领职工王瑞、郑军，对成昆线上下行K124+000至K141+000区段路外安全隐患进行现场复核..." onchange="updateCoordContent(${item.id}, this.value)">${escapeHtml(item.content)}</textarea>
+        </div>
+        <div class="image-upload-area" onclick="event.stopPropagation(); document.getElementById('coordImgInput_${item.id}').click()">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">点击上传现场照片（支持多张）</div>
+          <input type="file" id="coordImgInput_${item.id}" accept="image/*" multiple style="display:none" onchange="handleCoordImageUpload(this, ${item.id})">
+        </div>
+        ${item.images.length > 0 ? `
+          <div class="image-preview-list">
+            ${item.images.map((img, i) => `
+              <div class="image-preview-item">
+                <img src="${img}" alt="现场照片">
+                <button class="remove-btn" onclick="event.stopPropagation();removeCoordImage(${item.id}, ${i})">&times;</button>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateCoordContent(id, val) {
+  const item = coordItems.find(i => i.id === id);
+  if (item) item.content = val;
+}
+
+// ============ SECTION 3 IMAGES ============
+function handleS3ImageUpload(input) {
+  const files = Array.from(input.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      s3Images.push(e.target.result);
+      renderS3Images();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function removeS3Image(idx) {
+  s3Images.splice(idx, 1);
+  renderS3Images();
+}
+
+function renderS3Images() {
+  const container = document.getElementById('s3ImagePreview');
+  container.innerHTML = s3Images.map((img, i) => `
+    <div class="image-preview-item">
+      <img src="${img}" alt="统计截图">
+      <button class="remove-btn" onclick="removeS3Image(${i})">&times;</button>
+    </div>
+  `).join('');
+}
+
+// ============ GENERATE REPORT ============
+async function generateReport() {
+  const btn = document.getElementById('generateBtn');
+  const status = document.getElementById('statusMsg');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 正在生成...';
+  status.textContent = '';
+  status.className = 'status-msg';
+
+  try {
+    const data = collectData();
+    const blob = await buildDocx(data);
+    pendingDocxBlob = blob;
+
+    const dateStr = data.date.replace(/-/g, '');
+    pendingFilename = `${data.mainTitle}${dateStr}.docx`;
+
+    status.textContent = '生成成功！正在下载...';
+    status.className = 'status-msg success';
+    triggerDownload();
+  } catch (err) {
+    console.error(err);
+    status.textContent = '生成失败: ' + err.message;
+    status.className = 'status-msg error';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '生成并下载 Word 日报';
+  }
+}
+
+function collectData() {
+  const getVal = id => document.getElementById(id)?.value?.trim() || '';
+  const getNum = id => document.getElementById(id)?.value?.trim() || '0';
+
+  const data = {
+    date: getVal('reportDate'),
+    mainTitle: getVal('mainTitle') || '成都工务段铁路沿线安全环境隐患排查整治大会战工作日报',
+    section1Title: getVal('section1Title') || '一、当日工作开展情况',
+    section2Title: getVal('section2Title') || '二、协调对接工作开展情况',
+    section3Title: getVal('section3Title') || '三、大会战排查整治数据统计',
+    section4Title: getVal('section4Title') || '四、需段协调解决问题',
+    s1: {
+      personnel: getNum('s1_personnel'),
+      baobao: getNum('s1_baobao'),
+      mileage: getVal('s1_mileage'),
+      total_mileage: getVal('s1_total_mileage'),
+      completion: getVal('s1_completion'),
+      district: getNum('s1_district'),
+      town: getNum('s1_town'),
+      village: getNum('s1_village'),
+      daily_hazards: getNum('s1_daily_hazards'),
+      existing: getNum('s1_existing'),
+      new_hazards: getNum('s1_new'),
+      guotie: getNum('s1_guotie'),
+      sys_input: getNum('s1_sys_input'),
+      cancel: getNum('s1_cancel'),
+      total_hazards: getNum('s1_total_hazards'),
+      total_input: getNum('s1_total_input'),
+      total_cancel: getNum('s1_total_cancel'),
+      video_note: getVal('s1_video_note'),
+      extra_note: getVal('s1_extra_note'),
+      mode: s1Mode,
+      free_text: getVal('s1_free_text'),
+    },
+    s2: coordItems.map(item => ({
+      content: item.content,
+      images: [...item.images]
+    })),
+    s3: {
+      images: [...s3Images],
+    },
+    s4: getVal('s4_content') || '无',
+  };
+  return data;
+}
+
+// ============ BUILD DOCX ============
+async function buildDocx(data) {
+  const {
+    Document, Packer, Paragraph, TextRun,
+    ImageRun, AlignmentType
+  } = docx;
+
+  // Image pixel dimensions: 宽6.67cm × 高5.0cm at 96 DPI
+  // 6.67cm / 2.54 * 96 = 252px, 5.0cm / 2.54 * 96 = 189px
+  const IMG_W_PX = 252;
+  const IMG_H_PX = 189;
+
+  // Section 3 image dimensions: 宽18cm × 高4.5cm, 不锁定横纵比
+  // 18cm / 2.54 * 96 = 680px, 4.5cm / 2.54 * 96 = 170px
+  const S3_IMG_W_PX = 680;
+  const S3_IMG_H_PX = 170;
+
+  // Parse date
+  const d = data.date ? new Date(data.date + 'T00:00:00') : new Date();
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  const dateStr = `${d.getFullYear()}年${month}月${day}日`;
+
+  const children = [];
+
+  // 28pt line spacing = 28 * 20 = 560 twips
+  const LINE_SPACING = 560;
+  // 2 Chinese char indent ≈ 32pt = 640 twips
+  const FIRST_INDENT = 640;
+
+  // ---- TITLE ----
+  // char_spacing=-11 (twips) condenses to match original tighter spacing
+  // Smart split: break at "大会战" to keep "大会战工作日报" on line 2
+  const titleText = data.mainTitle;
+  const splitIdx = titleText.indexOf('大会战');
+  const line1 = splitIdx > 0 ? titleText.substring(0, splitIdx) : titleText;
+  const line2 = splitIdx > 0 ? titleText.substring(splitIdx) : '';
+
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+      children: [
+        new TextRun({ text: line1, font: '方正小标宋简体', size: 44, bold: false, characterSpacing: -11 }),
+      ]
+    })
+  );
+  if (line2) {
+    children.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+        children: [
+          new TextRun({ text: line2, font: '方正小标宋简体', size: 44, bold: false, characterSpacing: -11 }),
+        ]
+      })
+    );
+  }
+  children.push(
+    new Paragraph({ spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, children: [] })
+  );
+
+  // Helper: section header paragraph
+  function sectionHeader(text) {
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      indent: { firstLine: FIRST_INDENT },
+      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+      children: [
+        new TextRun({ text, font: '国标黑体', size: 32, bold: false }),
+      ]
+    });
+  }
+
+  // Helper: body paragraph
+  function bodyParagraph(text, alignment) {
+    return new Paragraph({
+      alignment: alignment || AlignmentType.BOTH,
+      indent: { firstLine: FIRST_INDENT },
+      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+      children: [
+        new TextRun({ text, font: '方正仿宋_GB2312', size: 32, bold: false }),
+      ]
+    });
+  }
+
+  // Helper: body paragraph with mixed formatting
+  function bodyParagraphMixed(runs) {
+    return new Paragraph({
+      alignment: AlignmentType.BOTH,
+      indent: { firstLine: FIRST_INDENT },
+      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+      children: runs.map(r => new TextRun({
+        text: r.text,
+        font: r.font || '方正仿宋_GB2312',
+        size: r.size || 32,
+        bold: r.bold || false,
+      })),
+    });
+  }
+
+  // ---- SECTION 1 ----
+  children.push(sectionHeader(data.section1Title));
+
+  // Build Section 1 body text
+  const s1 = data.s1;
+
+  if (s1.mode === 'free' && s1.free_text) {
+    // 直接粘贴总结模式
+    children.push(bodyParagraph(s1.free_text));
+  } else {
+    // 填写结构化数据模式
+    let s1Text = `成都工务段${month}月${day}日，出动排查人员${s1.personnel}人次，出动包保组成员${s1.baobao}人次，排查线路里程${s1.mileage}公里，累计排查线路里程${s1.total_mileage}公里，完成率${s1.completion}%。`;
+    
+    if (s1.district !== '0' || s1.town !== '0' || s1.village !== '0') {
+      s1Text += `今日对接协调区市县${s1.district}个、乡镇街道${s1.town}个、村社${s1.village}个。`;
+    }
+
+    const hasBreakdown = s1.existing !== '0' || s1.new_hazards !== '0' || s1.guotie !== '0';
+    if (hasBreakdown) {
+      s1Text += `当日排查隐患${s1.daily_hazards}处（既有隐患${s1.existing}处，新增隐患${s1.new_hazards}处，国铁库内隐患${s1.guotie}处），系统录入${s1.sys_input}处，销号${s1.cancel}处；`;
+    } else {
+      s1Text += `当日排���隐患${s1.daily_hazards}处，系统录入${s1.sys_input}处，销号${s1.cancel}处；`;
+    }
+    s1Text += `累计排查隐患${s1.total_hazards}处，累计系统录入${s1.total_input}处，累计销号${s1.total_cancel}处。`;
+
+    if (s1.video_note) {
+      s1Text += s1.video_note;
+    }
+    if (s1.extra_note) {
+      s1Text += s1.extra_note;
+    }
+
+    children.push(bodyParagraph(s1Text));
+  }
+
+  // ---- SECTION 2 ----
+  children.push(sectionHeader(data.section2Title));
+
+  const validS2 = data.s2.filter(item => item.content.trim());
+  if (validS2.length === 0) {
+    children.push(bodyParagraph('无'));
+  } else {
+    for (let i = 0; i < validS2.length; i++) {
+      const item = validS2[i];
+      // Prepend number if content doesn't already start with one
+      let content = item.content.trim();
+      if (content && !content.match(/^\d+\./)) {
+        content = `${i + 1}.${content}`;
+      }
+      children.push(bodyParagraph(content));
+
+      // Add images: 2 per paragraph side-by-side, inline (embedded) type
+      if (item.images && item.images.length > 0) {
+        for (let k = 0; k < item.images.length; k += 2) {
+          try {
+            const imgChildren = [];
+            // First image in pair
+            const r1 = await resizeImage(item.images[k], IMG_W_PX, IMG_H_PX);
+            imgChildren.push(new ImageRun({
+              data: await dataURLToBuffer(r1),
+              transformation: { width: IMG_W_PX, height: IMG_H_PX },
+              type: 'jpg',
+            }));
+            // Second image in pair (if exists), with space between
+            if (k + 1 < item.images.length) {
+              imgChildren.push(new TextRun({ text: '  ', font: '方正仿宋_GB2312', size: 32 }));
+              const r2 = await resizeImage(item.images[k + 1], IMG_W_PX, IMG_H_PX);
+              imgChildren.push(new ImageRun({
+                data: await dataURLToBuffer(r2),
+                transformation: { width: IMG_W_PX, height: IMG_H_PX },
+                type: 'jpg',
+              }));
+            }
+            children.push(new Paragraph({
+              alignment: AlignmentType.CENTER,
+              indent: { firstLine: 0 },
+              spacing: { before: 60, after: 60 },
+              children: imgChildren,
+            }));
+          } catch(e) { console.error('段二图片插入失败:', e.message || e); }
+        }
+      }
+    }
+  }
+
+  // ---- SECTION 3 ----
+  children.push(sectionHeader(data.section3Title));
+
+  // Add stat images: one per paragraph, embedded type, 不锁定横纵比
+  if (data.s3.images && data.s3.images.length > 0) {
+    for (let k = 0; k < data.s3.images.length; k++) {
+      try {
+        const r = await resizeImage(data.s3.images[k], S3_IMG_W_PX, S3_IMG_H_PX);
+        // 负缩进方案: 18cm图片(10205twips) > 文本栏(8646twips)
+        // indent.left = 850(页面居中起点) - 1630(左页边距) = -780twips
+        // 图片左边距页面左边缘850twips, 右边同理, 完美居中
+        children.push(new Paragraph({
+          indent: { left: -780, firstLine: 0 },
+          spacing: { before: 60, after: 60 },
+          children: [
+            new ImageRun({
+              data: await dataURLToBuffer(r),
+              transformation: { width: S3_IMG_W_PX, height: S3_IMG_H_PX },
+              type: 'jpg',
+            })
+          ],
+        }));
+      } catch(e) { console.error('段三图片插入失败:', e.message || e); }
+    }
+  }
+
+  // ---- SECTION 4 ----
+  children.push(sectionHeader(data.section4Title));
+  children.push(bodyParagraph(data.s4));
+
+  // ---- FOOTER ----
+  children.push(new Paragraph({ spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, children: [] }));
+  children.push(new Paragraph({
+    alignment: AlignmentType.RIGHT,
+    spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+    children: [
+      new TextRun({ text: '成都工务段', font: '方正仿宋_GB2312', size: 32, bold: false }),
+    ]
+  }));
+  children.push(new Paragraph({
+    alignment: AlignmentType.RIGHT,
+    spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+    children: [
+      new TextRun({ text: dateStr, font: '方正仿宋_GB2312', size: 32, bold: false }),
+    ]
+  }));
+
+  // Build document
+  const doc = new Document({
+    sections: [{
+      properties: {
+        page: {
+          margin: {
+          top: 1440,
+          bottom: 1440,
+          left: 1630,
+          right: 1630,
+          }
+        }
+      },
+      children: children,
+    }]
+  });
+
+  return await Packer.toBlob(doc);
+}
+
+// ============ HELPERS ============
+// Resize image via Canvas, returns JPEG data URL at target dimensions
+function resizeImage(dataURL, targetW, targetH) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d');
+      // White background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, targetW, targetH);
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => reject(new Error('Image load failed'));
+    img.src = dataURL;
+  });
+}
+
+function dataURLToBuffer(dataURL) {
+  return new Promise((resolve, reject) => {
+    try {
+      const parts = dataURL.split(',');
+      const base64 = parts[1] || parts[0];
+      const binary = atob(base64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      resolve(bytes);
+    } catch(e) { reject(e); }
+  });
+}
+
+function triggerDownload() {
+  if (!pendingDocxBlob) return;
+  const url = URL.createObjectURL(pendingDocxBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = pendingFilename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('statusMsg').textContent = '下载完成！';
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function closePreview() {
+  document.getElementById('previewModal').classList.remove('active');
+}
+</script>
+
+</body>
+</html>
