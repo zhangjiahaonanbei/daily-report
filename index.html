@@ -1234,7 +1234,7 @@ async function generatePDF() {
 
     // ---- PAGINATION: measure blocks and group into pages ----
     const measureDiv = document.createElement('div');
-    measureDiv.style.cssText = 'position:absolute; left:-99999px; top:0; width:' + CONTENT_W + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; pointer-events:none;';
+    measureDiv.style.cssText = 'position:fixed; top:0; left:0; width:' + CONTENT_W + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; z-index:-1; pointer-events:none;';
     document.body.appendChild(measureDiv);
 
     const pages = [];
@@ -1259,16 +1259,22 @@ async function generatePDF() {
     }
 
     // ---- RENDER: each page independently to canvas ----
+    // 白色遮罩层：盖住整个屏幕，防止用户看到渲染中的 div
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:#ffffff; z-index:99998; display:flex; align-items:center; justify-content:center;';
+    overlay.innerHTML = '<div style="text-align:center;"><div class="spinner" style="margin:0 auto 10px;"></div><p style="color:#333; font-size:14px;">正在生成PDF，请稍候...</p></div>';
+    document.body.appendChild(overlay);
+
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pdfW = 210, pdfH = 297;
     const isMobile = window.innerWidth < 600;
-    const renderScale = isMobile ? 1.5 : 2;
-    const jpegQuality = isMobile ? 0.85 : 0.92;
+    const renderScale = isMobile ? 1.0 : 2;
+    const jpegQuality = isMobile ? 0.8 : 0.92;
 
     for (let i = 0; i < pages.length; i++) {
       const pageDiv = document.createElement('div');
-      pageDiv.style.cssText = 'position:absolute; left:-99999px; top:0; width:' + PAGE_W + 'px; height:' + PAGE_H + 'px; padding:' + PAD_T + 'px ' + PAD_R + 'px ' + PAD_B + 'px ' + PAD_L + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; overflow:hidden; pointer-events:none;';
+      pageDiv.style.cssText = 'position:fixed; top:0; left:0; width:' + PAGE_W + 'px; height:' + PAGE_H + 'px; padding:' + PAD_T + 'px ' + PAD_R + 'px ' + PAD_B + 'px ' + PAD_L + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; overflow:hidden; z-index:-1; pointer-events:none;';
       pageDiv.innerHTML = pages[i].join('');
       document.body.appendChild(pageDiv);
 
@@ -1277,6 +1283,9 @@ async function generatePDF() {
         if (img.complete && img.naturalWidth > 0) return Promise.resolve();
         return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
       }));
+
+      // 等待一帧确保浏览器完成布局
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
       const canvas = await html2canvas(pageDiv, {
         scale: renderScale,
@@ -1298,12 +1307,18 @@ async function generatePDF() {
       }
     }
 
+    // 移除遮罩层
+    if (overlay.parentNode) document.body.removeChild(overlay);
+
     const datePart = rawDate.replace(/-/g, '');
     const safeTitle = data.mainTitle.replace(/[\\/:*?"<>|]/g, '_');
     const filename = safeTitle + datePart + '.pdf';
 
-    // 移动端兼容下载（iOS Safari 不支持 <a download>，需用 blob URL 打开）
-    if (isMobile) {
+    // 检测 iOS Safari（不支持 <a download>，需用 blob URL 打开）
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+      // iOS Safari: 用 blob URL 在新标签打开
       const blob = pdf.output('blob');
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -1319,12 +1334,16 @@ async function generatePDF() {
       }, 10000);
       status.textContent = 'PDF 已生成！文件名：' + filename;
     } else {
+      // Android / 桌面：直接用 pdf.save()
       pdf.save(filename);
       status.textContent = 'PDF 生成成功！文件名：' + filename;
     }
     status.className = 'status-msg success';
   } catch (err) {
     console.error(err);
+    // 确保遮罩层被移除
+    const ov = document.querySelector('div[style*="z-index:99998"]');
+    if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
     status.textContent = 'PDF 生成失败: ' + err.message;
     status.className = 'status-msg error';
   } finally {
