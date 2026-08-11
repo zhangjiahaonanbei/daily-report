@@ -872,11 +872,11 @@ async function buildDocx(data) {
     for (const part of parts) {
       if (!part) continue;
       if (/^\d+(?:\.\d+)?$/.test(part)) {
-        const opts = { text: part, font: 'Times New Roman', size, bold };
+        const opts = { text: part, font: 'Times New Roman', size, bold, snapToGrid: false };
         if (characterSpacing !== undefined) opts.characterSpacing = characterSpacing;
         runs.push(new TextRun(opts));
       } else {
-        const opts = { text: part, font, size, bold };
+        const opts = { text: part, font, size, bold, snapToGrid: false };
         if (characterSpacing !== undefined) opts.characterSpacing = characterSpacing;
         runs.push(new TextRun(opts));
       }
@@ -952,7 +952,7 @@ async function buildDocx(data) {
           type: 'jpg',
         }));
         if (k + 1 < images.length) {
-          imgChildren.push(new TextRun({ text: '  ', font: '华文仿宋', size: 32 }));
+          imgChildren.push(new TextRun({ text: '  ', font: '华文仿宋', size: 32, snapToGrid: false }));
           const r2 = await resizeImage(images[k + 1], IMG_W_PX, IMG_H_PX);
           imgChildren.push(new ImageRun({
             data: await dataURLToBuffer(r2),
@@ -1054,7 +1054,8 @@ async function buildDocx(data) {
           left: 1630,
           right: 1630,
           }
-        }
+        },
+        grid: { type: 'default', linePitch: 0 }
       },
       children: children,
     }]
@@ -1151,12 +1152,13 @@ async function generatePDF() {
 
     function mixedSpans(text, font) {
       const parts = text.split(/(\d+(?:\.\d+)?)/);
+      const fontChain = font + ',\'STFangsong\',\'FangSong\',\'仿宋\',\'宋体\',serif';
       return parts.map(part => {
         if (!part) return '';
         if (/^\d+(?:\.\d+)?$/.test(part)) {
           return '<span style="font-family:\'Times New Roman\',serif;">' + escapeHtml(part) + '</span>';
         }
-        return '<span style="font-family:\'' + font + '\';">' + escapeHtml(part) + '</span>';
+        return '<span style="font-family:\'' + fontChain + '\';">' + escapeHtml(part) + '</span>';
       }).join('');
     }
 
