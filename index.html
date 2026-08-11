@@ -1181,7 +1181,7 @@ async function generatePDF() {
     const bodyStyle = 'font-size:' + FONT_BODY + 'px; line-height:' + LINE_H + 'px; text-indent:' + INDENT + 'px; margin:0; padding:0; text-align:justify; text-align-last:left; word-break:break-word;';
 
     // Section 1
-    blocks.push('<p style="' + shStyle + '">' + mixedSpans(data.section1Title, '国标黑体') + '</p>');
+    blocks.push('<p data-heading="1" style="' + shStyle + '">' + mixedSpans(data.section1Title, '国标黑体') + '</p>');
     let s1Text;
     if (data.s1.mode === 'free' && data.s1.free_text) {
       s1Text = data.s1.free_text;
@@ -1193,8 +1193,8 @@ async function generatePDF() {
     blocks.push('<p style="' + bodyStyle + '">' + mixedSpans(s1Text, '华文仿宋') + '</p>');
 
     // Section 2
-    blocks.push('<p style="' + shStyle + '">' + mixedSpans(data.section2Title, '国标黑体') + '</p>');
-    blocks.push('<p style="' + ssStyle + '">' + mixedSpans('（一）隐患推送情况', '楷体_GB2312') + '</p>');
+    blocks.push('<p data-heading="1" style="' + shStyle + '">' + mixedSpans(data.section2Title, '国标黑体') + '</p>');
+    blocks.push('<p data-heading="1" style="' + ssStyle + '">' + mixedSpans('（一）隐患推送情况', '楷体_GB2312') + '</p>');
     const validS2a = data.s2a.filter(item => item.content.trim());
     if (validS2a.length === 0) {
       blocks.push('<p style="' + bodyStyle + '">' + mixedSpans('无', '华文仿宋') + '</p>');
@@ -1208,7 +1208,7 @@ async function generatePDF() {
         }
       }
     }
-    blocks.push('<p style="' + ssStyle + '">' + mixedSpans('（二）对接协调整治情况', '楷体_GB2312') + '</p>');
+    blocks.push('<p data-heading="1" style="' + ssStyle + '">' + mixedSpans('（二）对接协调整治情况', '楷体_GB2312') + '</p>');
     const validS2b = data.s2b.filter(item => item.content.trim());
     if (validS2b.length === 0) {
       blocks.push('<p style="' + bodyStyle + '">' + mixedSpans('无', '华文仿宋') + '</p>');
@@ -1224,7 +1224,7 @@ async function generatePDF() {
     }
 
     // Section 3
-    blocks.push('<p style="' + shStyle + '">' + mixedSpans(data.section3Title, '国标黑体') + '</p>');
+    blocks.push('<p data-heading="1" style="' + shStyle + '">' + mixedSpans(data.section3Title, '国标黑体') + '</p>');
     blocks.push('<p style="' + bodyStyle + '">' + mixedSpans(data.s3, '华文仿宋') + '</p>');
 
     // Footer
@@ -1247,9 +1247,15 @@ async function generatePDF() {
         const totalHeight = measureDiv.offsetHeight;
 
         if (totalHeight > CONTENT_H && currentBlocks.length > 0) {
+          // Keep-with-next: 防止标题孤悬在页面底部导致下方大段空白
+          // 把当前页末尾的标题block拉到下一页，与内容一起
+          var headingsToMove = [];
+          while (currentBlocks.length > 0 && currentBlocks[currentBlocks.length - 1].indexOf('data-heading') !== -1) {
+            headingsToMove.unshift(currentBlocks.pop());
+          }
           pages.push(currentBlocks);
-          currentBlocks = [];
-          measureDiv.innerHTML = blockHtml;
+          currentBlocks = headingsToMove;
+          measureDiv.innerHTML = headingsToMove.join('') + blockHtml;
         }
         currentBlocks.push(blockHtml);
       }
