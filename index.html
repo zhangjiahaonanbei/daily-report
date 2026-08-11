@@ -893,7 +893,7 @@ async function buildDocx(data) {
   children.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
-      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, snapToGrid: false,
       children: mixedRuns(line1, '方正小标宋简体', 44, false, -11)
     })
   );
@@ -901,13 +901,13 @@ async function buildDocx(data) {
     children.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+        spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, snapToGrid: false,
         children: mixedRuns(line2, '方正小标宋简体', 44, false, -11)
       })
     );
   }
   children.push(
-    new Paragraph({ spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, children: [] })
+    new Paragraph({ spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, snapToGrid: false, children: [] })
   );
 
   // Helper: section header (国标黑体)
@@ -915,7 +915,7 @@ async function buildDocx(data) {
     return new Paragraph({
       alignment: AlignmentType.LEFT,
       indent: { firstLine: FIRST_INDENT },
-      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, snapToGrid: false,
       children: mixedRuns(text, '国标黑体', 32, false)
     });
   }
@@ -925,7 +925,7 @@ async function buildDocx(data) {
     return new Paragraph({
       alignment: AlignmentType.LEFT,
       indent: { firstLine: FIRST_INDENT },
-      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, snapToGrid: false,
       children: mixedRuns(text, '楷体_GB2312', 32, false)
     });
   }
@@ -935,7 +935,7 @@ async function buildDocx(data) {
     return new Paragraph({
       alignment: alignment || AlignmentType.BOTH,
       indent: { firstLine: FIRST_INDENT },
-      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, snapToGrid: false,
       children: mixedRuns(text, '华文仿宋', 32, false)
     });
   }
@@ -963,7 +963,7 @@ async function buildDocx(data) {
         children.push(new Paragraph({
           alignment: AlignmentType.CENTER,
           indent: { firstLine: 0 },
-          spacing: { before: 60, after: 60 },
+          spacing: { before: 60, after: 60 }, snapToGrid: false,
           children: imgChildren,
         }));
       } catch(e) { console.error('图片插入失败:', e.message || e); }
@@ -1031,15 +1031,15 @@ async function buildDocx(data) {
   children.push(bodyParagraph(data.s3));
 
   // ---- FOOTER ----
-  children.push(new Paragraph({ spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, children: [] }));
+  children.push(new Paragraph({ spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, snapToGrid: false, children: [] }));
   children.push(new Paragraph({
     alignment: AlignmentType.RIGHT,
-    spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+    spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, snapToGrid: false,
     children: mixedRuns('成都工务段', '华文仿宋', 32, false)
   }));
   children.push(new Paragraph({
     alignment: AlignmentType.RIGHT,
-    spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+    spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, snapToGrid: false,
     children: mixedRuns(dateStr, '华文仿宋', 32, false)
   }));
 
@@ -1232,7 +1232,7 @@ async function generatePDF() {
 
     // ---- PAGINATION: measure blocks and group into pages ----
     const measureDiv = document.createElement('div');
-    measureDiv.style.cssText = 'position:absolute; left:0; top:0; width:' + CONTENT_W + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; visibility:hidden; z-index:-9999; pointer-events:none;';
+    measureDiv.style.cssText = 'position:absolute; left:-99999px; top:0; width:' + CONTENT_W + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; pointer-events:none;';
     document.body.appendChild(measureDiv);
 
     const pages = [];
@@ -1266,7 +1266,7 @@ async function generatePDF() {
 
     for (let i = 0; i < pages.length; i++) {
       const pageDiv = document.createElement('div');
-      pageDiv.style.cssText = 'position:absolute; left:0; top:0; width:' + PAGE_W + 'px; height:' + PAGE_H + 'px; padding:' + PAD_T + 'px ' + PAD_R + 'px ' + PAD_B + 'px ' + PAD_L + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; overflow:hidden; z-index:-9999; opacity:0; pointer-events:none;';
+      pageDiv.style.cssText = 'position:absolute; left:-99999px; top:0; width:' + PAGE_W + 'px; height:' + PAGE_H + 'px; padding:' + PAD_T + 'px ' + PAD_R + 'px ' + PAD_B + 'px ' + PAD_L + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; overflow:hidden; pointer-events:none;';
       pageDiv.innerHTML = pages[i].join('');
       document.body.appendChild(pageDiv);
 
@@ -1299,9 +1299,27 @@ async function generatePDF() {
     const datePart = rawDate.replace(/-/g, '');
     const safeTitle = data.mainTitle.replace(/[\\/:*?"<>|]/g, '_');
     const filename = safeTitle + datePart + '.pdf';
-    pdf.save(filename);
 
-    status.textContent = 'PDF 生成成功！文件名：' + filename;
+    // 移动端兼容下载（iOS Safari 不支持 <a download>，需用 blob URL 打开）
+    if (isMobile) {
+      const blob = pdf.output('blob');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+        if (a.parentNode) document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 10000);
+      status.textContent = 'PDF 已生成！文件名：' + filename;
+    } else {
+      pdf.save(filename);
+      status.textContent = 'PDF 生成成功！文件名：' + filename;
+    }
     status.className = 'status-msg success';
   } catch (err) {
     console.error(err);
