@@ -2,9 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>成都工务段 - 铁路沿线安全环境隐患排查整治大会战工作日报生成器</title>
 <script src="docx.umd.js"></script>
+<script src="html2canvas.min.js"></script>
+<script src="jspdf.umd.min.js"></script>
 <style>
 :root {
   --primary: #1a5276;
@@ -28,10 +30,17 @@ body {
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
+  min-height: 100dvh;
   -webkit-text-size-adjust: 100%;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
-/* Prevent iOS input zoom on focus — keep font >= 16px on mobile */
+input, textarea, select {
+  -webkit-user-select: text;
+  user-select: text;
+}
 @media (max-width: 600px) {
   input, textarea, select, button { font-size: 16px !important; }
   .btn-sm, .btn-sm input { font-size: 13px !important; }
@@ -41,11 +50,11 @@ body {
   margin: 0 auto;
   padding: 16px;
 }
-/* Header */
 .header {
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: #fff;
   padding: 24px 20px;
+  padding-top: calc(24px + env(safe-area-inset-top, 0px));
   border-radius: var(--radius);
   margin-bottom: 16px;
   text-align: center;
@@ -67,18 +76,13 @@ body {
   outline: none;
   transition: background 0.2s;
 }
-.header .title-input:focus {
-  background: rgba(255,255,255,0.25);
-}
-.header .title-input::placeholder {
-  color: rgba(255,255,255,0.5);
-}
+.header .title-input:focus { background: rgba(255,255,255,0.25); }
+.header .title-input::placeholder { color: rgba(255,255,255,0.5); }
 .header .subtitle {
   font-size: 13px;
   opacity: 0.85;
   letter-spacing: 0.5px;
 }
-/* Card */
 .card {
   background: var(--card-bg);
   border-radius: var(--radius);
@@ -124,7 +128,6 @@ body {
   border-color: var(--primary-light);
   background: #f0f4ff;
 }
-/* Date Picker */
 .date-row {
   display: flex;
   align-items: center;
@@ -151,7 +154,6 @@ body {
   border-color: var(--primary-light);
   outline: none;
 }
-/* Form groups */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -190,15 +192,32 @@ body {
   resize: vertical;
   min-height: 80px;
 }
-.form-group input[type="number"] {
-  -moz-appearance: textfield;
-}
+.form-group input[type="number"] { -moz-appearance: textfield; }
 .form-group input[type="number"]::-webkit-outer-spin-button,
-.form-group input[type="number"]::-webkit-inner-spin-button {
-  opacity: 1;
+.form-group input[type="number"]::-webkit-inner-spin-button { opacity: 1; }
+/* Subsection */
+.subsection {
+  background: #f8f9fa;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 14px;
 }
-/* Coordination items */
-.coord-item {
+.subsection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.subsection-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary);
+}
+/* Item card */
+.item-card {
   background: #fafbfc;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -206,25 +225,23 @@ body {
   margin-bottom: 12px;
   position: relative;
 }
-.coord-item .item-header {
+.item-card .item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
-.coord-item .item-num {
+.item-card .item-num {
   font-weight: 700;
   color: var(--primary);
   font-size: 14px;
 }
-.coord-item .coord-content {
+.item-card .item-content {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.coord-item textarea {
-  min-height: 100px;
-}
+.item-card textarea { min-height: 100px; }
 /* Image upload */
 .image-upload-area {
   border: 2px dashed var(--border);
@@ -239,14 +256,8 @@ body {
   border-color: var(--primary-light);
   background: #eef5fb;
 }
-.image-upload-area .upload-icon {
-  font-size: 28px;
-  margin-bottom: 4px;
-}
-.image-upload-area .upload-text {
-  font-size: 13px;
-  color: var(--text-light);
-}
+.image-upload-area .upload-icon { font-size: 28px; margin-bottom: 4px; }
+.image-upload-area .upload-text { font-size: 13px; color: var(--text-light); }
 .image-preview-list {
   display: flex;
   flex-wrap: wrap;
@@ -268,20 +279,27 @@ body {
 }
 .image-preview-item .remove-btn {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 0;
+  right: 0;
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: 50%;
-  width: 22px;
-  height: 22px;
-  font-size: 12px;
+  border-radius: 0 6px 0 6px;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  touch-action: manipulation;
+}
+.empty-hint {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+  font-size: 14px;
 }
 /* Buttons */
 .btn {
@@ -311,21 +329,14 @@ body {
   color: var(--primary);
   border: 2px solid var(--primary);
 }
-.btn-outline:hover {
-  background: #eef5fb;
-}
+.btn-outline:hover { background: #eef5fb; }
 .btn-danger {
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent);
 }
-.btn-danger:hover {
-  background: #fdedec;
-}
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 12px;
-}
+.btn-danger:hover { background: #fdedec; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
 .btn-block {
   width: 100%;
   justify-content: center;
@@ -337,7 +348,6 @@ body {
   gap: 10px;
   flex-wrap: wrap;
 }
-/* Generate section */
 .generate-section {
   text-align: center;
   padding: 10px 0;
@@ -355,7 +365,6 @@ body {
 }
 .status-msg.success { color: var(--success); font-weight: 600; }
 .status-msg.error { color: var(--accent); }
-/* Preview modal */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -381,11 +390,9 @@ body {
   margin-bottom: 16px;
   color: var(--primary);
 }
-/* ====== Responsive ====== */
-
-/* Tablet & small desktop */
+/* Responsive */
 @media (max-width: 600px) {
-  .container { padding: 8px; }
+  .container { padding: 8px; padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
   .card { padding: 12px; border-radius: 8px; margin-bottom: 10px; }
   .card-header { flex-wrap: wrap; gap: 6px; }
   .card-header .section-num { width: 26px; height: 26px; font-size: 12px; }
@@ -393,44 +400,48 @@ body {
   .form-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
   .form-group label { font-size: 11px; }
   .form-group input, .form-group textarea { font-size: 16px; padding: 10px; }
-  .header { padding: 14px 12px; border-radius: 8px; }
+  .header { padding: 14px 12px; padding-top: calc(14px + env(safe-area-inset-top, 0px)); border-radius: 8px; }
   .header .title-input { font-size: 15px; }
   .header .subtitle { font-size: 11px; }
   .generate-section .btn-primary { width: 100%; max-width: 400px; padding: 14px 28px; font-size: 15px; }
+  .generate-section .btn { max-width: 100% !important; }
   .toggle-btn { padding: 8px 12px; font-size: 13px; min-height: 40px; }
   .btn { font-size: 13px; padding: 10px 14px; min-height: 40px; }
-  .coord-item { padding: 10px; }
-  .coord-item .item-header { flex-wrap: wrap; gap: 8px; }
-  .image-preview-item { width: 70px; height: 70px; }
+  .item-card { padding: 10px; }
+  .item-card .item-header { flex-wrap: wrap; gap: 8px; }
+  .image-preview-item { width: 72px; height: 72px; }
+  .image-preview-item .remove-btn { width: 30px; height: 30px; font-size: 15px; }
   .btn-row { flex-direction: column; }
-  .btn-row .btn { width: 100%; justify-content: center; }
+  .btn-row .btn { width: 100%; max-width: 100% !important; justify-content: center; }
+  .subsection { padding: 10px; }
+  .subsection-header { flex-direction: column; align-items: stretch; }
 }
-
-/* iPhone 14/15 Pro Max, Plus (~430px) */
 @media (max-width: 430px) {
-  .header { padding: 12px 10px; }
+  .header { padding: 12px 10px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
   .header .title-input { font-size: 14px; padding: 10px 8px; }
   .header .subtitle { font-size: 10px; }
   .card-header { flex-wrap: wrap; gap: 4px; }
   .card-header .section-title-input { font-size: 13px; min-width: 0; flex: 1 1 100%; }
   .toggle-switch { margin-left: 0; }
   .generate-section .btn-primary { font-size: 16px; padding: 16px 20px; min-height: 48px; }
+  .generate-section .btn-outline { font-size: 16px; padding: 16px 20px; min-height: 48px; }
   .btn { min-height: 44px; }
-  .btn-sm { min-height: 36px; padding: 6px 10px; font-size: 12px; }
+  .btn-sm { min-height: 40px; padding: 8px 12px; font-size: 13px; }
   .date-row { flex-direction: column; align-items: stretch; gap: 8px; }
   .date-row label { font-size: 13px; }
+  .date-row input[type="date"] { min-width: 0; width: 100%; }
   .image-upload-area { padding: 20px 12px; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .image-upload-area .upload-icon { font-size: 32px; }
   .image-upload-area .upload-text { font-size: 14px; }
-  .modal { max-width: 100%; max-height: 100vh; border-radius: 12px 12px 0 0; margin-top: auto; }
-  .modal-overlay { align-items: flex-end; }
-  .coord-item .item-header { flex-direction: column; align-items: stretch; }
-  .coord-item .item-header .btn { width: 100%; justify-content: center; }
+  .modal { max-width: 100%; max-height: 90vh; max-height: 90dvh; border-radius: 12px 12px 0 0; margin-top: auto; -webkit-overflow-scrolling: touch; }
+  .modal-overlay { align-items: flex-end; padding-bottom: 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .item-card .item-header { flex-direction: column; align-items: stretch; }
+  .item-card .item-header .btn { width: 100%; justify-content: center; }
+  .toggle-btn { min-height: 40px; padding: 8px 10px; }
+  .form-grid { gap: 6px; }
 }
-
-/* iPhone SE, older small phones (~375px) */
 @media (max-width: 380px) {
-  .container { padding: 6px; }
+  .container { padding: 6px; padding-top: calc(6px + env(safe-area-inset-top, 0px)); }
   .card { padding: 10px; margin-bottom: 8px; }
   .form-grid { grid-template-columns: 1fr; }
   .card-header { flex-direction: column; align-items: stretch; }
@@ -440,8 +451,6 @@ body {
   .header .title-input { font-size: 13px; }
   .generate-section .btn-primary { padding: 16px 12px; font-size: 15px; }
 }
-
-/* iOS safe-area & scrolling */
 @supports (padding: env(safe-area-inset-bottom)) {
   .container { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
   .modal-overlay { padding-bottom: env(safe-area-inset-bottom); }
@@ -449,14 +458,16 @@ body {
 body {
   -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
 }
-/* help text */
+.modal {
+  -webkit-overflow-scrolling: touch;
+}
 .help-text {
   font-size: 12px;
   color: #999;
   margin-top: 4px;
 }
-/* Loading spinner */
 .spinner {
   display: inline-block;
   width: 20px;
@@ -468,7 +479,6 @@ body {
   vertical-align: middle;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-/* Toggle switch buttons */
 .toggle-switch {
   display: flex;
   border: 2px solid var(--primary);
@@ -488,13 +498,8 @@ body {
   font-family: inherit;
   white-space: nowrap;
 }
-.toggle-btn.active {
-  background: var(--primary);
-  color: #fff;
-}
-.toggle-btn:not(.active):hover {
-  background: #eef5fb;
-}
+.toggle-btn.active { background: var(--primary); color: #fff; }
+.toggle-btn:not(.active):hover { background: #eef5fb; }
 @media (max-width: 600px) {
   .toggle-btn { padding: 6px 10px; font-size: 12px; }
 }
@@ -532,79 +537,51 @@ body {
     <div class="form-grid">
       <div class="form-group">
         <label>出动排查人员 <span class="unit">(人次)</span></label>
-        <input type="number" id="s1_personnel" placeholder="如: 12" min="0">
+        <input type="number" id="s1_personnel" placeholder="如: 10" min="0">
       </div>
       <div class="form-group">
-        <label>出动包保组成员 <span class="unit">(人次)</span></label>
+        <label>车间干部 <span class="unit">(人次)</span></label>
+        <input type="number" id="s1_ganbu" placeholder="如: 0" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>包保组成员 <span class="unit">(人次)</span></label>
         <input type="number" id="s1_baobao" placeholder="如: 0" min="0" value="0">
       </div>
       <div class="form-group">
-        <label>排查线路里程 <span class="unit">(公里)</span></label>
-        <input type="text" id="s1_mileage" placeholder="如: 38.068">
+        <label>对接协调区县 <span class="unit">(个)</span></label>
+        <input type="number" id="s1_district" placeholder="如: 2" min="0" value="0">
       </div>
       <div class="form-group">
-        <label>累计排查线路里程 <span class="unit">(公里)</span></label>
-        <input type="text" id="s1_total_mileage" placeholder="如: 747.912">
+        <label>乡镇（街道） <span class="unit">(个)</span></label>
+        <input type="number" id="s1_town" placeholder="如: 3" min="0" value="0">
       </div>
       <div class="form-group">
-        <label>完成率 <span class="unit">(%)</span></label>
-        <input type="text" id="s1_completion" placeholder="如: 64">
+        <label>村社 <span class="unit">(个)</span></label>
+        <input type="number" id="s1_village" placeholder="如: 5" min="0" value="0">
       </div>
       <div class="form-group">
-        <label>对接协调区市县 <span class="unit">(个)</span></label>
-        <input type="number" id="s1_district" placeholder="如: 1" min="0" value="0">
-      </div>
-      <div class="form-group">
-        <label>对接协调乡镇街道 <span class="unit">(个)</span></label>
-        <input type="number" id="s1_town" placeholder="如: 1" min="0" value="0">
-      </div>
-      <div class="form-group">
-        <label>对接协调村社 <span class="unit">(个)</span></label>
-        <input type="number" id="s1_village" placeholder="如: 4" min="0" value="0">
-      </div>
-      <div class="form-group">
-        <label>当日排查隐患 <span class="unit">(处)</span></label>
-        <input type="number" id="s1_daily_hazards" placeholder="如: 32" min="0" value="0">
-      </div>
-      <div class="form-group">
-        <label>其中: 既有隐患 <span class="unit">(处)</span></label>
-        <input type="number" id="s1_existing" placeholder="如: 22" min="0" value="0">
-      </div>
-      <div class="form-group">
-        <label>其中: 新增隐患 <span class="unit">(处)</span></label>
-        <input type="number" id="s1_new" placeholder="如: 10" min="0" value="0">
-      </div>
-      <div class="form-group">
-        <label>其中: 国铁库内隐患 <span class="unit">(处)</span></label>
-        <input type="number" id="s1_guotie" placeholder="如: 0" min="0" value="0">
-      </div>
-      <div class="form-group">
-        <label>系统录入 <span class="unit">(处)</span></label>
-        <input type="number" id="s1_sys_input" placeholder="如: 11" min="0" value="0">
-      </div>
-      <div class="form-group">
-        <label>销号 <span class="unit">(处)</span></label>
+        <label>当日隐患销号 <span class="unit">(处)</span></label>
         <input type="number" id="s1_cancel" placeholder="如: 0" min="0" value="0">
       </div>
       <div class="form-group">
-        <label>累计排查隐患 <span class="unit">(处)</span></label>
-        <input type="number" id="s1_total_hazards" placeholder="如: 303" min="0" value="0">
+        <label>未销号隐患 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_unresolved" placeholder="如: 288" min="0" value="0">
       </div>
       <div class="form-group">
-        <label>累计系统录入 <span class="unit">(处)</span></label>
-        <input type="number" id="s1_total_input" placeholder="如: 110" min="0" value="0">
+        <label>立查立改隐患 <span class="unit">(处)</span></label>
+        <input type="number" id="s1_immediate" placeholder="如: 0" min="0" value="0">
       </div>
       <div class="form-group">
-        <label>累计销号 <span class="unit">(处)</span></label>
-        <input type="number" id="s1_total_cancel" placeholder="如: 0" min="0" value="0">
+        <label>下发隐患告知书 <span class="unit">(份)</span></label>
+        <input type="number" id="s1_notice" placeholder="如: 0" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>违法行为通知书 <span class="unit">(份)</span></label>
+        <input type="number" id="s1_violation" placeholder="如: 0" min="0" value="0">
       </div>
     </div>
     <div style="margin-top:12px">
       <div class="form-group">
-        <label>录制音视频车间（选填，格式：今日录制音视频车间X个，为XXX车间）</label>
-        <textarea id="s1_video_note" rows="2" placeholder="例如：今日录制音视频车间1个，为彭山线桥车间。&#10;不填则不出现在日报中。"></textarea>
-      </div>
-      <div class="form-group" style="margin-top:8px">
         <label>其他备注（选填，将追加在段落末尾）</label>
         <input type="text" id="s1_extra_note" placeholder="如有额外说明请填写...">
       </div>
@@ -613,60 +590,63 @@ body {
     <!-- 直接粘贴总结模式 -->
     <div id="s1FreeMode" style="display:none">
       <div class="form-group">
-        <textarea id="s1_free_text" rows="8" placeholder="直接在此粘贴当日工作开展情况的完整总结文字...&#10;&#10;例如：成都工务段7月26日，出动排查人员12人次，出动包保组成员0人次，排查线路里程38.068公里..."></textarea>
-        <span class="help-text">粘贴后生成Word时会自动套用正文格式（方正仿宋_GB2312，16pt，首行缩进2字符，两端对齐）</span>
+        <textarea id="s1_free_text" rows="8" placeholder="直接在此粘贴当日工作开展情况的完整总结文字...&#10;&#10;例如：8月10日，我段共出动排查人员10人次、车间干部0人次、包保组成员0人次；当日对接协调区县2个、乡镇（街道）3个、村社5个。当日隐患销号0处，未销号隐患288处；立查立改隐患0处，下发隐患告知书0份，违法行为通知书0份。"></textarea>
+        <span class="help-text">粘贴后生成Word时会自动套用正文格式（华文仿宋，16pt，首行缩进2字符，两端对齐）</span>
       </div>
     </div>
   </div>
 
-  <!-- Section 2: 协调对接工作开展情况 -->
+  <!-- Section 2: 隐患整治推进情况 -->
   <div class="card" id="section2">
     <div class="card-header">
       <div class="section-num">2</div>
-      <input type="text" id="section2Title" class="section-title-input" value="二、协调对接工作开展情况">
-      <button class="btn btn-outline btn-sm" onclick="addCoordItem()" style="margin-left:auto">+ 添加条目</button>
+      <input type="text" id="section2Title" class="section-title-input" value="二、隐患整治推进情况">
     </div>
-    <div id="coordItems"></div>
-    <div id="coordEmpty" style="text-align:center;padding:20px;color:#999;font-size:14px">
-      暂无条目，点击右上角"+ 添加条目"开始填写
+
+    <!-- （一）隐患推送情况 -->
+    <div class="subsection">
+      <div class="subsection-header">
+        <span class="subsection-title">（一）隐患推送情况</span>
+        <button class="btn btn-outline btn-sm" onclick="addS2Item('a')">+ 添加条目</button>
+      </div>
+      <div id="s2aItems"></div>
+      <div id="s2aEmpty" class="empty-hint">暂无条目，点击"+ 添加条目"开始填写</div>
+    </div>
+
+    <!-- （二）对接协调整治情况 -->
+    <div class="subsection">
+      <div class="subsection-header">
+        <span class="subsection-title">（二）对接协调整治情况</span>
+        <button class="btn btn-outline btn-sm" onclick="addS2Item('b')">+ 添加条目</button>
+      </div>
+      <div id="s2bItems"></div>
+      <div id="s2bEmpty" class="empty-hint">暂无条目，点击"+ 添加条目"开始填写</div>
     </div>
   </div>
 
-  <!-- Section 3: 大会战排查整治数据统计 -->
+  <!-- Section 3: 需段协调解决问题 -->
   <div class="card" id="section3">
     <div class="card-header">
       <div class="section-num">3</div>
-      <input type="text" id="section3Title" class="section-title-input" value="三、大会战排查整治数据统计">
-    </div>
-    <p class="help-text" style="margin-bottom:10px">
-      直接上传统计截图（支持多张）。
-    </p>
-    <!-- Image upload for statistics -->
-    <div class="image-upload-area" id="s3ImageArea" onclick="document.getElementById('s3ImageInput').click()">
-      <div class="upload-icon">📊</div>
-      <div class="upload-text">点击上传数据统计截图（支持多张）</div>
-      <input type="file" id="s3ImageInput" accept="image/*" multiple style="display:none" onchange="handleS3ImageUpload(this)">
-    </div>
-    <div class="image-preview-list" id="s3ImagePreview"></div>
-  </div>
-
-  <!-- Section 4: 需段协调解决问题 -->
-  <div class="card" id="section4">
-    <div class="card-header">
-      <div class="section-num">4</div>
-      <input type="text" id="section4Title" class="section-title-input" value="四、需段协调解决问题">
+      <input type="text" id="section3Title" class="section-title-input" value="三、需段协调解决问题">
     </div>
     <div class="form-group">
-      <textarea id="s4_content" rows="4" placeholder="填写需段协调解决的问题，如无则填写"无""></textarea>
+      <textarea id="s3_content" rows="4" placeholder="填写需段协调解决的问题，如无则填写"无""></textarea>
     </div>
   </div>
 
   <!-- Generate -->
   <div class="card generate-section">
-    <button class="btn btn-primary btn-block" onclick="generateReport()" id="generateBtn">
-      生成并下载 Word 日报
-    </button>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn btn-primary" onclick="generateReport()" id="generateBtn" style="flex:1; max-width:300px">
+        生成并下载 Word 日报
+      </button>
+      <button class="btn btn-outline" onclick="generatePDF()" id="generatePdfBtn" style="flex:1; max-width:300px">
+        生成并下载 PDF 日报
+      </button>
+    </div>
     <div class="status-msg" id="statusMsg"></div>
+    <div class="status-msg" id="pdfStatusMsg"></div>
   </div>
 </div>
 
@@ -684,10 +664,13 @@ body {
 
 <script>
 // ============ STATE ============
-let coordItems = [];
-let coordItemCounter = 0;
-let s3Images = [];
-let s1Mode = 'data'; // 'data' or 'free'
+const s2State = {
+  a: { items: [], counter: 0, containerId: 's2aItems', emptyId: 's2aEmpty', label: '隐患推送' },
+  b: { items: [], counter: 0, containerId: 's2bItems', emptyId: 's2bEmpty', label: '对接协调整治' }
+};
+let s1Mode = 'data';
+let pendingDocxBlob = null;
+let pendingFilename = '';
 
 // ============ SECTION 1 TOGGLE ============
 function switchS1Mode(mode) {
@@ -697,89 +680,87 @@ function switchS1Mode(mode) {
   document.getElementById('s1ToggleData').classList.toggle('active', mode === 'data');
   document.getElementById('s1ToggleFree').classList.toggle('active', mode === 'free');
 }
-let pendingDocxBlob = null;
-let pendingFilename = '';
 
 // ============ INIT ============
 document.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('reportDate').value = today;
-  addCoordItem(); // default 1 item
+  addS2Item('a');
+  addS2Item('b');
 });
 
-// ============ COORD ITEMS ============
-function addCoordItem() {
-  coordItemCounter++;
-  const idx = coordItemCounter;
-  const item = {
-    id: idx,
-    content: '',
-    images: []
-  };
-  coordItems.push(item);
-  renderCoordItems();
+// ============ SECTION 2 ITEMS (generic for both subsections) ============
+function addS2Item(type) {
+  const s = s2State[type];
+  s.counter++;
+  s.items.push({ id: s.counter, content: '', images: [] });
+  renderS2Items(type);
 }
 
-function removeCoordItem(id) {
-  coordItems = coordItems.filter(item => item.id !== id);
-  renderCoordItems();
+function removeS2Item(type, id) {
+  const s = s2State[type];
+  s.items = s.items.filter(i => i.id !== id);
+  renderS2Items(type);
 }
 
-function handleCoordImageUpload(input, itemId) {
-  const files = Array.from(input.files);
-  const item = coordItems.find(i => i.id === itemId);
+function handleS2ImageUpload(input, type, itemId) {
+  const s = s2State[type];
+  const item = s.items.find(i => i.id === itemId);
   if (!item) return;
+  const files = Array.from(input.files);
   files.forEach(file => {
     const reader = new FileReader();
     reader.onload = (e) => {
       item.images.push(e.target.result);
-      renderCoordItems();
+      renderS2Items(type);
     };
     reader.readAsDataURL(file);
   });
   input.value = '';
 }
 
-function removeCoordImage(itemId, imgIdx) {
-  const item = coordItems.find(i => i.id === itemId);
+function removeS2Image(type, itemId, imgIdx) {
+  const s = s2State[type];
+  const item = s.items.find(i => i.id === itemId);
   if (!item) return;
   item.images.splice(imgIdx, 1);
-  renderCoordItems();
+  renderS2Items(type);
 }
 
-function renderCoordItems() {
-  const container = document.getElementById('coordItems');
-  const emptyEl = document.getElementById('coordEmpty');
+function renderS2Items(type) {
+  const s = s2State[type];
+  const container = document.getElementById(s.containerId);
+  const emptyEl = document.getElementById(s.emptyId);
 
-  if (coordItems.length === 0) {
+  if (s.items.length === 0) {
     container.innerHTML = '';
     emptyEl.style.display = 'block';
     return;
   }
   emptyEl.style.display = 'none';
 
-  container.innerHTML = coordItems.map((item, idx) => `
-    <div class="coord-item">
+  container.innerHTML = s.items.map((item, idx) => `
+    <div class="item-card">
       <div class="item-header">
-        <span class="item-num">协调事项 #${idx + 1}</span>
-        <button class="btn btn-danger btn-sm" onclick="removeCoordItem(${item.id})">删除</button>
+        <span class="item-num">${s.label} #${idx + 1}</span>
+        <button class="btn btn-danger btn-sm" onclick="removeS2Item('${type}', ${item.id})">删除</button>
       </div>
-      <div class="coord-content">
+      <div class="item-content">
         <div class="form-group">
           <label>工作内容描述</label>
-          <textarea rows="4" placeholder="例：2026年7月26日，彭山线桥车间副主任童柯伟带领职工王瑞、郑军，对成昆线上下行K124+000至K141+000区段路外安全隐患进行现场复核..." onchange="updateCoordContent(${item.id}, this.value)">${escapeHtml(item.content)}</textarea>
+          <textarea rows="4" placeholder="请输入${s.label}的工作内容描述..." onchange="updateS2Content('${type}', ${item.id}, this.value)">${escapeHtml(item.content)}</textarea>
         </div>
-        <div class="image-upload-area" onclick="event.stopPropagation(); document.getElementById('coordImgInput_${item.id}').click()">
+        <div class="image-upload-area" onclick="event.stopPropagation(); document.getElementById('s2Img_${type}_${item.id}').click()">
           <div class="upload-icon">📷</div>
-          <div class="upload-text">点击上传现场照片（支持多张）</div>
-          <input type="file" id="coordImgInput_${item.id}" accept="image/*" multiple style="display:none" onchange="handleCoordImageUpload(this, ${item.id})">
+          <div class="upload-text">点击上传照片（支持多张）</div>
+          <input type="file" id="s2Img_${type}_${item.id}" accept="image/*" multiple style="display:none" onchange="handleS2ImageUpload(this, '${type}', ${item.id})">
         </div>
         ${item.images.length > 0 ? `
           <div class="image-preview-list">
             ${item.images.map((img, i) => `
               <div class="image-preview-item">
-                <img src="${img}" alt="现场照片">
-                <button class="remove-btn" onclick="event.stopPropagation();removeCoordImage(${item.id}, ${i})">&times;</button>
+                <img src="${img}" alt="照片">
+                <button class="remove-btn" onclick="event.stopPropagation();removeS2Image('${type}', ${item.id}, ${i})">&times;</button>
               </div>
             `).join('')}
           </div>
@@ -789,38 +770,10 @@ function renderCoordItems() {
   `).join('');
 }
 
-function updateCoordContent(id, val) {
-  const item = coordItems.find(i => i.id === id);
+function updateS2Content(type, id, val) {
+  const s = s2State[type];
+  const item = s.items.find(i => i.id === id);
   if (item) item.content = val;
-}
-
-// ============ SECTION 3 IMAGES ============
-function handleS3ImageUpload(input) {
-  const files = Array.from(input.files);
-  files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      s3Images.push(e.target.result);
-      renderS3Images();
-    };
-    reader.readAsDataURL(file);
-  });
-  input.value = '';
-}
-
-function removeS3Image(idx) {
-  s3Images.splice(idx, 1);
-  renderS3Images();
-}
-
-function renderS3Images() {
-  const container = document.getElementById('s3ImagePreview');
-  container.innerHTML = s3Images.map((img, i) => `
-    <div class="image-preview-item">
-      <img src="${img}" alt="统计截图">
-      <button class="remove-btn" onclick="removeS3Image(${i})">&times;</button>
-    </div>
-  `).join('');
 }
 
 // ============ GENERATE REPORT ============
@@ -837,12 +790,14 @@ async function generateReport() {
     const blob = await buildDocx(data);
     pendingDocxBlob = blob;
 
-    const dateStr = data.date.replace(/-/g, '');
-    pendingFilename = `${data.mainTitle}${dateStr}.docx`;
+    const rawDate = data.date || new Date().toISOString().split('T')[0];
+    const dateStr = rawDate.replace(/-/g, '');
+    const safeTitle = data.mainTitle.replace(/[\\/:*?"<>|]/g, '_');
+    pendingFilename = `${safeTitle}${dateStr}.docx`;
 
-    status.textContent = '生成成功！正在下载...';
-    status.className = 'status-msg success';
     triggerDownload();
+    status.textContent = `下载完成！文件名：${pendingFilename}`;
+    status.className = 'status-msg success';
   } catch (err) {
     console.error(err);
     status.textContent = '生成失败: ' + err.message;
@@ -858,43 +813,30 @@ function collectData() {
   const getNum = id => document.getElementById(id)?.value?.trim() || '0';
 
   const data = {
-    date: getVal('reportDate'),
+    date: getVal('reportDate') || new Date().toISOString().split('T')[0],
     mainTitle: getVal('mainTitle') || '成都工务段铁路沿线安全环境隐患排查整治大会战工作日报',
     section1Title: getVal('section1Title') || '一、当日工作开展情况',
-    section2Title: getVal('section2Title') || '二、协调对接工作开展情况',
-    section3Title: getVal('section3Title') || '三、大会战排查整治数据统计',
-    section4Title: getVal('section4Title') || '四、需段协调解决问题',
+    section2Title: getVal('section2Title') || '二、隐患整治推进情况',
+    section3Title: getVal('section3Title') || '三、需段协调解决问题',
     s1: {
       personnel: getNum('s1_personnel'),
+      ganbu: getNum('s1_ganbu'),
       baobao: getNum('s1_baobao'),
-      mileage: getVal('s1_mileage'),
-      total_mileage: getVal('s1_total_mileage'),
-      completion: getVal('s1_completion'),
       district: getNum('s1_district'),
       town: getNum('s1_town'),
       village: getNum('s1_village'),
-      daily_hazards: getNum('s1_daily_hazards'),
-      existing: getNum('s1_existing'),
-      new_hazards: getNum('s1_new'),
-      guotie: getNum('s1_guotie'),
-      sys_input: getNum('s1_sys_input'),
       cancel: getNum('s1_cancel'),
-      total_hazards: getNum('s1_total_hazards'),
-      total_input: getNum('s1_total_input'),
-      total_cancel: getNum('s1_total_cancel'),
-      video_note: getVal('s1_video_note'),
+      unresolved: getNum('s1_unresolved'),
+      immediate: getNum('s1_immediate'),
+      notice: getNum('s1_notice'),
+      violation: getNum('s1_violation'),
       extra_note: getVal('s1_extra_note'),
       mode: s1Mode,
       free_text: getVal('s1_free_text'),
     },
-    s2: coordItems.map(item => ({
-      content: item.content,
-      images: [...item.images]
-    })),
-    s3: {
-      images: [...s3Images],
-    },
-    s4: getVal('s4_content') || '无',
+    s2a: s2State.a.items.map(item => ({ content: item.content, images: [...item.images] })),
+    s2b: s2State.b.items.map(item => ({ content: item.content, images: [...item.images] })),
+    s3: getVal('s3_content') || '无',
   };
   return data;
 }
@@ -906,15 +848,10 @@ async function buildDocx(data) {
     ImageRun, AlignmentType
   } = docx;
 
-  // Image pixel dimensions: 宽6.67cm × 高5.0cm at 96 DPI
-  // 6.67cm / 2.54 * 96 = 252px, 5.0cm / 2.54 * 96 = 189px
-  const IMG_W_PX = 252;
-  const IMG_H_PX = 189;
-
-  // Section 3 image dimensions: 宽18cm × 高4.5cm, 不锁定横纵比
-  // 18cm / 2.54 * 96 = 680px, 4.5cm / 2.54 * 96 = 170px
-  const S3_IMG_W_PX = 680;
-  const S3_IMG_H_PX = 170;
+  // Image dimensions: 宽4cm × 高3cm at 96 DPI
+  // 4cm / 2.54 * 96 = 151px, 3cm / 2.54 * 96 = 113px
+  const IMG_W_PX = 151;
+  const IMG_H_PX = 113;
 
   // Parse date
   const d = data.date ? new Date(data.date + 'T00:00:00') : new Date();
@@ -924,14 +861,30 @@ async function buildDocx(data) {
 
   const children = [];
 
-  // 28pt line spacing = 28 * 20 = 560 twips
   const LINE_SPACING = 560;
-  // 2 Chinese char indent ≈ 32pt = 640 twips
   const FIRST_INDENT = 640;
 
+  // ---- MIXED RUNS HELPER ----
+  // Splits text into segments: digits use Times New Roman, rest uses specified font
+  function mixedRuns(text, font, size, bold, characterSpacing) {
+    const runs = [];
+    const parts = text.split(/(\d+(?:\.\d+)?)/);
+    for (const part of parts) {
+      if (!part) continue;
+      if (/^\d+(?:\.\d+)?$/.test(part)) {
+        const opts = { text: part, font: 'Times New Roman', size, bold };
+        if (characterSpacing !== undefined) opts.characterSpacing = characterSpacing;
+        runs.push(new TextRun(opts));
+      } else {
+        const opts = { text: part, font, size, bold };
+        if (characterSpacing !== undefined) opts.characterSpacing = characterSpacing;
+        runs.push(new TextRun(opts));
+      }
+    }
+    return runs;
+  }
+
   // ---- TITLE ----
-  // char_spacing=-11 (twips) condenses to match original tighter spacing
-  // Smart split: break at "大会战" to keep "大会战工作日报" on line 2
   const titleText = data.mainTitle;
   const splitIdx = titleText.indexOf('大会战');
   const line1 = splitIdx > 0 ? titleText.substring(0, splitIdx) : titleText;
@@ -941,9 +894,7 @@ async function buildDocx(data) {
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
-      children: [
-        new TextRun({ text: line1, font: '方正小标宋简体', size: 44, bold: false, characterSpacing: -11 }),
-      ]
+      children: mixedRuns(line1, '方正小标宋简体', 44, false, -11)
     })
   );
   if (line2) {
@@ -951,9 +902,7 @@ async function buildDocx(data) {
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
-        children: [
-          new TextRun({ text: line2, font: '方正小标宋简体', size: 44, bold: false, characterSpacing: -11 }),
-        ]
+        children: mixedRuns(line2, '方正小标宋简体', 44, false, -11)
       })
     );
   }
@@ -961,73 +910,76 @@ async function buildDocx(data) {
     new Paragraph({ spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, children: [] })
   );
 
-  // Helper: section header paragraph
+  // Helper: section header (国标黑体)
   function sectionHeader(text) {
     return new Paragraph({
       alignment: AlignmentType.LEFT,
       indent: { firstLine: FIRST_INDENT },
       spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
-      children: [
-        new TextRun({ text, font: '国标黑体', size: 32, bold: false }),
-      ]
+      children: mixedRuns(text, '国标黑体', 32, false)
     });
   }
 
-  // Helper: body paragraph
+  // Helper: subsection header (楷体_GB2312)
+  function subsectionHeader(text) {
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      indent: { firstLine: FIRST_INDENT },
+      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
+      children: mixedRuns(text, '楷体_GB2312', 32, false)
+    });
+  }
+
+  // Helper: body paragraph (华文仿宋)
   function bodyParagraph(text, alignment) {
     return new Paragraph({
       alignment: alignment || AlignmentType.BOTH,
       indent: { firstLine: FIRST_INDENT },
       spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
-      children: [
-        new TextRun({ text, font: '方正仿宋_GB2312', size: 32, bold: false }),
-      ]
+      children: mixedRuns(text, '华文仿宋', 32, false)
     });
   }
 
-  // Helper: body paragraph with mixed formatting
-  function bodyParagraphMixed(runs) {
-    return new Paragraph({
-      alignment: AlignmentType.BOTH,
-      indent: { firstLine: FIRST_INDENT },
-      spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
-      children: runs.map(r => new TextRun({
-        text: r.text,
-        font: r.font || '方正仿宋_GB2312',
-        size: r.size || 32,
-        bold: r.bold || false,
-      })),
-    });
+  // Helper: add images for an item (2 per row)
+  async function addItemImages(images) {
+    for (let k = 0; k < images.length; k += 2) {
+      try {
+        const imgChildren = [];
+        const r1 = await resizeImage(images[k], IMG_W_PX, IMG_H_PX);
+        imgChildren.push(new ImageRun({
+          data: await dataURLToBuffer(r1),
+          transformation: { width: IMG_W_PX, height: IMG_H_PX },
+          type: 'jpg',
+        }));
+        if (k + 1 < images.length) {
+          imgChildren.push(new TextRun({ text: '  ', font: '华文仿宋', size: 32 }));
+          const r2 = await resizeImage(images[k + 1], IMG_W_PX, IMG_H_PX);
+          imgChildren.push(new ImageRun({
+            data: await dataURLToBuffer(r2),
+            transformation: { width: IMG_W_PX, height: IMG_H_PX },
+            type: 'jpg',
+          }));
+        }
+        children.push(new Paragraph({
+          alignment: AlignmentType.CENTER,
+          indent: { firstLine: 0 },
+          spacing: { before: 60, after: 60 },
+          children: imgChildren,
+        }));
+      } catch(e) { console.error('图片插入失败:', e.message || e); }
+    }
   }
 
   // ---- SECTION 1 ----
   children.push(sectionHeader(data.section1Title));
 
-  // Build Section 1 body text
   const s1 = data.s1;
 
   if (s1.mode === 'free' && s1.free_text) {
-    // 直接粘贴总结模式
     children.push(bodyParagraph(s1.free_text));
   } else {
-    // 填写结构化数据模式
-    let s1Text = `成都工务段${month}月${day}日，出动排查人员${s1.personnel}人次，出动包保组成员${s1.baobao}人次，排查线路里程${s1.mileage}公里，累计排查线路里程${s1.total_mileage}公里，完成率${s1.completion}%。`;
-    
-    if (s1.district !== '0' || s1.town !== '0' || s1.village !== '0') {
-      s1Text += `今日对接协调区市县${s1.district}个、乡镇街道${s1.town}个、村社${s1.village}个。`;
-    }
+    let s1Text = `${month}月${day}日，我段共出动排查人员${s1.personnel}人次、车间干部${s1.ganbu}人次、包保组成员${s1.baobao}人次；当日对接协调区县${s1.district}个、乡镇（街道）${s1.town}个、村社${s1.village}个。当日隐患销号${s1.cancel}处，未销号隐患${s1.unresolved}处；立查立改隐患${s1.immediate}处，下发隐患告知书${s1.notice}份，违法行为通知书${s1.violation}份。`;
 
-    const hasBreakdown = s1.existing !== '0' || s1.new_hazards !== '0' || s1.guotie !== '0';
-    if (hasBreakdown) {
-      s1Text += `当日排查隐患${s1.daily_hazards}处（既有隐患${s1.existing}处，新增隐患${s1.new_hazards}处，国铁库内隐患${s1.guotie}处），系统录入${s1.sys_input}处，销号${s1.cancel}处；`;
-    } else {
-      s1Text += `当日排���隐患${s1.daily_hazards}处，系统录入${s1.sys_input}处，销号${s1.cancel}处；`;
-    }
-    s1Text += `累计排查隐患${s1.total_hazards}处，累计系统录入${s1.total_input}处，累计销号${s1.total_cancel}处。`;
-
-    if (s1.video_note) {
-      s1Text += s1.video_note;
-    }
     if (s1.extra_note) {
       s1Text += s1.extra_note;
     }
@@ -1038,98 +990,57 @@ async function buildDocx(data) {
   // ---- SECTION 2 ----
   children.push(sectionHeader(data.section2Title));
 
-  const validS2 = data.s2.filter(item => item.content.trim());
-  if (validS2.length === 0) {
+  // （一）隐患推送情况
+  children.push(subsectionHeader('（一）隐患推送情况'));
+  const validS2a = data.s2a.filter(item => item.content.trim());
+  if (validS2a.length === 0) {
     children.push(bodyParagraph('无'));
   } else {
-    for (let i = 0; i < validS2.length; i++) {
-      const item = validS2[i];
-      // Prepend number if content doesn't already start with one
-      let content = item.content.trim();
+    for (let i = 0; i < validS2a.length; i++) {
+      let content = validS2a[i].content.trim();
       if (content && !content.match(/^\d+\./)) {
         content = `${i + 1}.${content}`;
       }
       children.push(bodyParagraph(content));
+      if (validS2a[i].images && validS2a[i].images.length > 0) {
+        await addItemImages(validS2a[i].images);
+      }
+    }
+  }
 
-      // Add images: 2 per paragraph side-by-side, inline (embedded) type
-      if (item.images && item.images.length > 0) {
-        for (let k = 0; k < item.images.length; k += 2) {
-          try {
-            const imgChildren = [];
-            // First image in pair
-            const r1 = await resizeImage(item.images[k], IMG_W_PX, IMG_H_PX);
-            imgChildren.push(new ImageRun({
-              data: await dataURLToBuffer(r1),
-              transformation: { width: IMG_W_PX, height: IMG_H_PX },
-              type: 'jpg',
-            }));
-            // Second image in pair (if exists), with space between
-            if (k + 1 < item.images.length) {
-              imgChildren.push(new TextRun({ text: '  ', font: '方正仿宋_GB2312', size: 32 }));
-              const r2 = await resizeImage(item.images[k + 1], IMG_W_PX, IMG_H_PX);
-              imgChildren.push(new ImageRun({
-                data: await dataURLToBuffer(r2),
-                transformation: { width: IMG_W_PX, height: IMG_H_PX },
-                type: 'jpg',
-              }));
-            }
-            children.push(new Paragraph({
-              alignment: AlignmentType.CENTER,
-              indent: { firstLine: 0 },
-              spacing: { before: 60, after: 60 },
-              children: imgChildren,
-            }));
-          } catch(e) { console.error('段二图片插入失败:', e.message || e); }
-        }
+  // （二）对接协调整治情况
+  children.push(subsectionHeader('（二）对接协调整治情况'));
+  const validS2b = data.s2b.filter(item => item.content.trim());
+  if (validS2b.length === 0) {
+    children.push(bodyParagraph('无'));
+  } else {
+    for (let i = 0; i < validS2b.length; i++) {
+      let content = validS2b[i].content.trim();
+      if (content && !content.match(/^\d+\./)) {
+        content = `${i + 1}.${content}`;
+      }
+      children.push(bodyParagraph(content));
+      if (validS2b[i].images && validS2b[i].images.length > 0) {
+        await addItemImages(validS2b[i].images);
       }
     }
   }
 
   // ---- SECTION 3 ----
   children.push(sectionHeader(data.section3Title));
-
-  // Add stat images: one per paragraph, embedded type, 不锁定横纵比
-  if (data.s3.images && data.s3.images.length > 0) {
-    for (let k = 0; k < data.s3.images.length; k++) {
-      try {
-        const r = await resizeImage(data.s3.images[k], S3_IMG_W_PX, S3_IMG_H_PX);
-        // 负缩进方案: 18cm图片(10205twips) > 文本栏(8646twips)
-        // indent.left = 850(页面居中起点) - 1630(左页边距) = -780twips
-        // 图片左边距页面左边缘850twips, 右边同理, 完美居中
-        children.push(new Paragraph({
-          indent: { left: -780, firstLine: 0 },
-          spacing: { before: 60, after: 60 },
-          children: [
-            new ImageRun({
-              data: await dataURLToBuffer(r),
-              transformation: { width: S3_IMG_W_PX, height: S3_IMG_H_PX },
-              type: 'jpg',
-            })
-          ],
-        }));
-      } catch(e) { console.error('段三图片插入失败:', e.message || e); }
-    }
-  }
-
-  // ---- SECTION 4 ----
-  children.push(sectionHeader(data.section4Title));
-  children.push(bodyParagraph(data.s4));
+  children.push(bodyParagraph(data.s3));
 
   // ---- FOOTER ----
   children.push(new Paragraph({ spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 }, children: [] }));
   children.push(new Paragraph({
     alignment: AlignmentType.RIGHT,
     spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
-    children: [
-      new TextRun({ text: '成都工务段', font: '方正仿宋_GB2312', size: 32, bold: false }),
-    ]
+    children: mixedRuns('成都工务段', '华文仿宋', 32, false)
   }));
   children.push(new Paragraph({
     alignment: AlignmentType.RIGHT,
     spacing: { line: LINE_SPACING, lineRule: 'exact', before: 0, after: 0 },
-    children: [
-      new TextRun({ text: dateStr, font: '方正仿宋_GB2312', size: 32, bold: false }),
-    ]
+    children: mixedRuns(dateStr, '华文仿宋', 32, false)
   }));
 
   // Build document
@@ -1153,7 +1064,6 @@ async function buildDocx(data) {
 }
 
 // ============ HELPERS ============
-// Resize image via Canvas, returns JPEG data URL at target dimensions
 function resizeImage(dataURL, targetW, targetH) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -1162,7 +1072,6 @@ function resizeImage(dataURL, targetW, targetH) {
       canvas.width = targetW;
       canvas.height = targetH;
       const ctx = canvas.getContext('2d');
-      // White background
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, targetW, targetH);
       ctx.drawImage(img, 0, 0, targetW, targetH);
@@ -1198,8 +1107,7 @@ function triggerDownload() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  document.getElementById('statusMsg').textContent = '下载完成！';
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
 function escapeHtml(str) {
@@ -1210,6 +1118,212 @@ function escapeHtml(str) {
 
 function closePreview() {
   document.getElementById('previewModal').classList.remove('active');
+}
+
+function downloadDocx() {
+  triggerDownload();
+  closePreview();
+}
+
+// ============ GENERATE PDF (Page-by-page rendering) ============
+async function generatePDF() {
+  const btn = document.getElementById('generatePdfBtn');
+  const status = document.getElementById('pdfStatusMsg');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 正在生成PDF...';
+  status.textContent = '';
+  status.className = 'status-msg';
+
+  try {
+    const data = collectData();
+
+    const rawDate = data.date || new Date().toISOString().split('T')[0];
+    const d = new Date(rawDate + 'T00:00:00');
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    const dateStr = d.getFullYear() + '年' + month + '月' + day + '日';
+
+    const PAGE_W = 794, PAGE_H = 1123;
+    const PAD_T = 96, PAD_B = 96, PAD_L = 109, PAD_R = 109;
+    const CONTENT_W = PAGE_W - PAD_L - PAD_R;
+    const CONTENT_H = PAGE_H - PAD_T - PAD_B;
+    const FONT_BODY = 21.3, FONT_TITLE = 29.3, LINE_H = 37.3, INDENT = 42.7;
+
+    function mixedSpans(text, font) {
+      const parts = text.split(/(\d+(?:\.\d+)?)/);
+      return parts.map(part => {
+        if (!part) return '';
+        if (/^\d+(?:\.\d+)?$/.test(part)) {
+          return '<span style="font-family:\'Times New Roman\',serif;">' + escapeHtml(part) + '</span>';
+        }
+        return '<span style="font-family:\'' + font + '\';">' + escapeHtml(part) + '</span>';
+      }).join('');
+    }
+
+    const blocks = [];
+
+    // Title
+    const titleText = data.mainTitle;
+    const splitIdx = titleText.indexOf('大会战');
+    const line1 = splitIdx > 0 ? titleText.substring(0, splitIdx) : titleText;
+    const line2 = splitIdx > 0 ? titleText.substring(splitIdx) : '';
+    const titleStyle = 'text-align:center; font-size:' + FONT_TITLE + 'px; line-height:' + LINE_H + 'px; letter-spacing:-1px; margin:0; padding:0;';
+    blocks.push('<p style="' + titleStyle + '">' + mixedSpans(line1, '方正小标宋简体') + '</p>');
+    if (line2) {
+      blocks.push('<p style="' + titleStyle + '">' + mixedSpans(line2, '方正小标宋简体') + '</p>');
+    }
+    blocks.push('<p style="line-height:' + LINE_H + 'px; margin:0; padding:0;">&nbsp;</p>');
+
+    const shStyle = 'font-size:' + FONT_BODY + 'px; line-height:' + LINE_H + 'px; text-indent:' + INDENT + 'px; margin:0; padding:0; text-align:left;';
+    const ssStyle = shStyle;
+    const bodyStyle = 'font-size:' + FONT_BODY + 'px; line-height:' + LINE_H + 'px; text-indent:' + INDENT + 'px; margin:0; padding:0; text-align:justify; text-align-last:left; word-break:break-word;';
+
+    // Section 1
+    blocks.push('<p style="' + shStyle + '">' + mixedSpans(data.section1Title, '国标黑体') + '</p>');
+    let s1Text;
+    if (data.s1.mode === 'free' && data.s1.free_text) {
+      s1Text = data.s1.free_text;
+    } else {
+      const s1 = data.s1;
+      s1Text = month + '月' + day + '日，我段共出动排查人员' + s1.personnel + '人次、车间干部' + s1.ganbu + '人次、包保组成员' + s1.baobao + '人次；当日对接协调区县' + s1.district + '个、乡镇（街道）' + s1.town + '个、村社' + s1.village + '个。当日隐患销号' + s1.cancel + '处，未销号隐患' + s1.unresolved + '处；立查立改隐患' + s1.immediate + '处，下发隐患告知书' + s1.notice + '份，违法行为通知书' + s1.violation + '份。';
+      if (s1.extra_note) s1Text += s1.extra_note;
+    }
+    blocks.push('<p style="' + bodyStyle + '">' + mixedSpans(s1Text, '华文仿宋') + '</p>');
+
+    // Section 2
+    blocks.push('<p style="' + shStyle + '">' + mixedSpans(data.section2Title, '国标黑体') + '</p>');
+    blocks.push('<p style="' + ssStyle + '">' + mixedSpans('（一）隐患推送情况', '楷体_GB2312') + '</p>');
+    const validS2a = data.s2a.filter(item => item.content.trim());
+    if (validS2a.length === 0) {
+      blocks.push('<p style="' + bodyStyle + '">' + mixedSpans('无', '华文仿宋') + '</p>');
+    } else {
+      for (let i = 0; i < validS2a.length; i++) {
+        let content = validS2a[i].content.trim();
+        if (content && !content.match(/^\d+\./)) content = (i + 1) + '.' + content;
+        blocks.push('<p style="' + bodyStyle + '">' + mixedSpans(content, '华文仿宋') + '</p>');
+        if (validS2a[i].images && validS2a[i].images.length > 0) {
+          blocks.push(buildImageHtml(validS2a[i].images));
+        }
+      }
+    }
+    blocks.push('<p style="' + ssStyle + '">' + mixedSpans('（二）对接协调整治情况', '楷体_GB2312') + '</p>');
+    const validS2b = data.s2b.filter(item => item.content.trim());
+    if (validS2b.length === 0) {
+      blocks.push('<p style="' + bodyStyle + '">' + mixedSpans('无', '华文仿宋') + '</p>');
+    } else {
+      for (let i = 0; i < validS2b.length; i++) {
+        let content = validS2b[i].content.trim();
+        if (content && !content.match(/^\d+\./)) content = (i + 1) + '.' + content;
+        blocks.push('<p style="' + bodyStyle + '">' + mixedSpans(content, '华文仿宋') + '</p>');
+        if (validS2b[i].images && validS2b[i].images.length > 0) {
+          blocks.push(buildImageHtml(validS2b[i].images));
+        }
+      }
+    }
+
+    // Section 3
+    blocks.push('<p style="' + shStyle + '">' + mixedSpans(data.section3Title, '国标黑体') + '</p>');
+    blocks.push('<p style="' + bodyStyle + '">' + mixedSpans(data.s3, '华文仿宋') + '</p>');
+
+    // Footer
+    blocks.push('<p style="line-height:' + LINE_H + 'px; margin:0; padding:0;">&nbsp;</p>');
+    blocks.push('<p style="font-size:' + FONT_BODY + 'px; line-height:' + LINE_H + 'px; text-align:right; margin:0; padding:0;">' + mixedSpans('成都工务段', '华文仿宋') + '</p>');
+    blocks.push('<p style="font-size:' + FONT_BODY + 'px; line-height:' + LINE_H + 'px; text-align:right; margin:0; padding:0;">' + mixedSpans(dateStr, '华文仿宋') + '</p>');
+
+    // ---- PAGINATION: measure blocks and group into pages ----
+    const measureDiv = document.createElement('div');
+    measureDiv.style.cssText = 'position:absolute; left:0; top:0; width:' + CONTENT_W + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; visibility:hidden; z-index:-9999; pointer-events:none;';
+    document.body.appendChild(measureDiv);
+
+    const pages = [];
+    let currentBlocks = [];
+    measureDiv.innerHTML = '';
+
+    try {
+      for (const blockHtml of blocks) {
+        measureDiv.insertAdjacentHTML('beforeend', blockHtml);
+        const totalHeight = measureDiv.offsetHeight;
+
+        if (totalHeight > CONTENT_H && currentBlocks.length > 0) {
+          pages.push(currentBlocks);
+          currentBlocks = [];
+          measureDiv.innerHTML = blockHtml;
+        }
+        currentBlocks.push(blockHtml);
+      }
+      if (currentBlocks.length > 0) pages.push(currentBlocks);
+    } finally {
+      if (measureDiv.parentNode) document.body.removeChild(measureDiv);
+    }
+
+    // ---- RENDER: each page independently to canvas ----
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfW = 210, pdfH = 297;
+    const isMobile = window.innerWidth < 600;
+    const renderScale = isMobile ? 1.5 : 2;
+    const jpegQuality = isMobile ? 0.85 : 0.92;
+
+    for (let i = 0; i < pages.length; i++) {
+      const pageDiv = document.createElement('div');
+      pageDiv.style.cssText = 'position:absolute; left:0; top:0; width:' + PAGE_W + 'px; height:' + PAGE_H + 'px; padding:' + PAD_T + 'px ' + PAD_R + 'px ' + PAD_B + 'px ' + PAD_L + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; overflow:hidden; z-index:-9999; opacity:0; pointer-events:none;';
+      pageDiv.innerHTML = pages[i].join('');
+      document.body.appendChild(pageDiv);
+
+      const imgs = pageDiv.querySelectorAll('img');
+      await Promise.all(Array.from(imgs).map(img => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+      }));
+
+      const canvas = await html2canvas(pageDiv, {
+        scale: renderScale,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: PAGE_W,
+        height: PAGE_H,
+        windowWidth: PAGE_W,
+      });
+
+      if (i > 0) pdf.addPage();
+      pdf.addImage(canvas.toDataURL('image/jpeg', jpegQuality), 'JPEG', 0, 0, pdfW, pdfH);
+      document.body.removeChild(pageDiv);
+      // Free memory on mobile
+      if (isMobile && canvas) {
+        canvas.width = 0;
+        canvas.height = 0;
+      }
+    }
+
+    const datePart = rawDate.replace(/-/g, '');
+    const safeTitle = data.mainTitle.replace(/[\\/:*?"<>|]/g, '_');
+    const filename = safeTitle + datePart + '.pdf';
+    pdf.save(filename);
+
+    status.textContent = 'PDF 生成成功！文件名：' + filename;
+    status.className = 'status-msg success';
+  } catch (err) {
+    console.error(err);
+    status.textContent = 'PDF 生成失败: ' + err.message;
+    status.className = 'status-msg error';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '生成并下载 PDF 日报';
+  }
+}
+
+// Helper: build image HTML for PDF — 4cm×3cm = 151px×113px, 2 per row
+function buildImageHtml(images) {
+  const IMG_W = 151;
+  const IMG_H = 113;
+  let html = '<div style="text-align:center; margin:4px 0; padding:0; font-size:0;">';
+  for (let i = 0; i < images.length; i++) {
+    html += '<img src="' + images[i] + '" style="width:' + IMG_W + 'px; height:' + IMG_H + 'px; object-fit:cover; margin:2px; border:1px solid #ddd; vertical-align:middle; display:inline-block;" />';
+    if (i % 2 === 1 && i < images.length - 1) html += '<br>';
+  }
+  html += '</div>';
+  return html;
 }
 </script>
 
