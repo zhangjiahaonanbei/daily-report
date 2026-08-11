@@ -1232,40 +1232,8 @@ async function generatePDF() {
     blocks.push('<p style="font-size:' + FONT_BODY + 'px; line-height:' + LINE_H + 'px; text-align:right; margin:0; padding:0;">' + mixedSpans('成都工务段', '华文仿宋') + '</p>');
     blocks.push('<p style="font-size:' + FONT_BODY + 'px; line-height:' + LINE_H + 'px; text-align:right; margin:0; padding:0;">' + mixedSpans(dateStr, '华文仿宋') + '</p>');
 
-    // ---- PAGINATION: measure blocks and group into pages ----
-    const measureDiv = document.createElement('div');
-    measureDiv.style.cssText = 'position:fixed; top:0; left:0; width:' + CONTENT_W + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; z-index:-1; pointer-events:none;';
-    document.body.appendChild(measureDiv);
-
-    const pages = [];
-    let currentBlocks = [];
-    measureDiv.innerHTML = '';
-
-    try {
-      for (const blockHtml of blocks) {
-        measureDiv.insertAdjacentHTML('beforeend', blockHtml);
-        const totalHeight = measureDiv.offsetHeight;
-
-        if (totalHeight > CONTENT_H && currentBlocks.length > 0) {
-          // Keep-with-next: 防止标题孤悬在页面底部导致下方大段空白
-          // 把当前页末尾的标题block拉到下一页，与内容一起
-          var headingsToMove = [];
-          while (currentBlocks.length > 0 && currentBlocks[currentBlocks.length - 1].indexOf('data-heading') !== -1) {
-            headingsToMove.unshift(currentBlocks.pop());
-          }
-          pages.push(currentBlocks);
-          currentBlocks = headingsToMove;
-          measureDiv.innerHTML = headingsToMove.join('') + blockHtml;
-        }
-        currentBlocks.push(blockHtml);
-      }
-      if (currentBlocks.length > 0) pages.push(currentBlocks);
-    } finally {
-      if (measureDiv.parentNode) document.body.removeChild(measureDiv);
-    }
-
-    // ---- RENDER: each page independently to canvas ----
-    // 白色遮罩层：盖住整个屏幕，防止用户看到渲染中的 div
+    // ---- RENDER: single continuous canvas with smart page slicing ----
+    // 内容连续流动（和Word一样），只在切到图片时调整分页线，消除空白
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:#ffffff; z-index:99998; display:flex; align-items:center; justify-content:center;';
     overlay.innerHTML = '<div style="text-align:center;"><div class="spinner" style="margin:0 auto 10px;"></div><p style="color:#333; font-size:14px;">正在生成PDF，请稍候...</p></div>';
@@ -1278,39 +1246,102 @@ async function generatePDF() {
     const renderScale = isMobile ? 1.0 : 2;
     const jpegQuality = isMobile ? 0.8 : 0.92;
 
-    for (let i = 0; i < pages.length; i++) {
-      const pageDiv = document.createElement('div');
-      pageDiv.style.cssText = 'position:fixed; top:0; left:0; width:' + PAGE_W + 'px; height:' + PAGE_H + 'px; padding:' + PAD_T + 'px ' + PAD_R + 'px ' + PAD_B + 'px ' + PAD_L + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; overflow:hidden; z-index:-1; pointer-events:none;';
-      pageDiv.innerHTML = pages[i].join('');
-      document.body.appendChild(pageDiv);
+    // 1. 创建单个连续内容 div，包含所有 blocks
+    const contentDiv = document.createElement('div');
+    contentDiv.style.cssText = 'position:fixed; top:0; left:0; width:' + CONTENT_W + 'px; box-sizing:border-box; background:#ffffff; font-size:' + FONT_BODY + 'px; color:#000; z-index:-1; pointer-events:none;';
+    contentDiv.innerHTML = blocks.join('');
+    document.body.appendChild(contentDiv);
 
-      const imgs = pageDiv.querySelectorAll('img');
+    try {
+      // 2. 等待图片加载
+      const imgs = contentDiv.querySelectorAll('img');
       await Promise.all(Array.from(imgs).map(img => {
         if (img.complete && img.naturalWidth > 0) return Promise.resolve();
         return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
       }));
 
-      // 等待一帧确保浏览器完成布局
+      // 3. 等待布局完成
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-      const canvas = await html2canvas(pageDiv, {
+      // 4. 获取内容总高度和图片位置（用于避免切片切到图片）
+      const totalHeight = contentDiv.offsetHeight;
+      const contentRect = contentDiv.getBoundingClientRect();
+      const imageRanges = Array.from(imgs).map(img => {
+        const rect = img.getBoundingClientRect();
+        return { top: rect.top - contentRect.top, bottom: rect.bottom - contentRect.top };
+      }).sort((a, b) => a.top - b.top);
+
+      // 5. 计算分页边界：每页 CONTENT_H 高度，如果切到图片则上移到图片之前
+      const pageBoundaries = [0];
+      let y = 0;
+      while (y < totalHeight - 1) {
+        let nextY = y + CONTENT_H;
+        if (nextY > totalHeight) nextY = totalHeight;
+        // 检查分界线是否切到图片
+        for (const range of imageRanges) {
+          if (nextY > range.top && nextY < range.bottom) {
+            nextY = range.top; // 上移到图片之前
+            break;
+          }
+        }
+        if (nextY <= y) nextY = y + LINE_H; // 防止无限循环
+        pageBoundaries.push(nextY);
+        y = nextY;
+      }
+
+      // 6. 渲染整个内容为单个 canvas
+      const fullCanvas = await html2canvas(contentDiv, {
         scale: renderScale,
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
-        width: PAGE_W,
-        height: PAGE_H,
+        width: CONTENT_W,
+        height: totalHeight,
         windowWidth: PAGE_W,
       });
 
-      if (i > 0) pdf.addPage();
-      pdf.addImage(canvas.toDataURL('image/jpeg', jpegQuality), 'JPEG', 0, 0, pdfW, pdfH);
-      document.body.removeChild(pageDiv);
-      // Free memory on mobile
-      if (isMobile && canvas) {
-        canvas.width = 0;
-        canvas.height = 0;
+      // 7. 移除内容 div
+      document.body.removeChild(contentDiv);
+
+      // 8. 切片生成每页 PDF
+      const sCW = CONTENT_W * renderScale;
+      const sPW = PAGE_W * renderScale;
+      const sPH = PAGE_H * renderScale;
+      const sPL = PAD_L * renderScale;
+      const sPT = PAD_T * renderScale;
+
+      for (let i = 0; i < pageBoundaries.length - 1; i++) {
+        const startY = pageBoundaries[i] * renderScale;
+        const endY = pageBoundaries[i + 1] * renderScale;
+        const sliceH = endY - startY;
+
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = sPW;
+        pageCanvas.height = sPH;
+        const ctx = pageCanvas.getContext('2d');
+
+        // 白色背景
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, sPW, sPH);
+
+        // 内容切片画到页面上（带左右上下边距）
+        ctx.drawImage(fullCanvas, 0, startY, sCW, sliceH, sPL, sPT, sCW, sliceH);
+
+        if (i > 0) pdf.addPage();
+        pdf.addImage(pageCanvas.toDataURL('image/jpeg', jpegQuality), 'JPEG', 0, 0, pdfW, pdfH);
+
+        // 释放内存
+        pageCanvas.width = 0;
+        pageCanvas.height = 0;
       }
+
+      // 释放 fullCanvas
+      fullCanvas.width = 0;
+      fullCanvas.height = 0;
+
+    } catch (renderErr) {
+      if (contentDiv.parentNode) document.body.removeChild(contentDiv);
+      throw renderErr;
     }
 
     // 移除遮罩层
